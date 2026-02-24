@@ -1,0 +1,47 @@
+:root {
+    --color-primary: #2f7a4a;
+    --link-color: #2f7a4a;
+    --link-hover-color: #26653d;
+    --body-bg: #eff6ef;
+    --content-bg: #f8fbf7;
+    --content-top-border-color: #d9e7da;
+    --sidebar-bg: #195241;
+    --sidebar-border-color: #17483a;
+    --sidebar-logo-color: #f1f7f2;
+    --sidebar-menu-color: #d8e7dc;
+    --sidebar-menu-icon-color: #c1d7c7;
+    --sidebar-menu-submenu-color: #cfe2d3;
+    --sidebar-menu-active-item-bg: #2a6956;
+    --sidebar-menu-active-item-color: #ffffff;
+}
+
+body {
+    background: linear-gradient(160deg, #f2f8f2 0%, #e7f1e8 100%);
+}
+
+.content-wrapper {
+    background: radial-gradient(circle at top right, #f7fbf7 0%, #eff7ef 45%, #e9f2ea 100%);
+}
+
+.main-header {
+    border-bottom: 1px solid var(--content-top-border-color);
+}
+
+#main-menu .menu .menu-item.active:not(.expanded) a,
+#main-menu .menu .menu-item.active:not(.expanded) .menu-icon {
+    color: #ffffff;
+}
+
+#main-menu .menu .menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+}
+
+.content-wrapper .table a {
+    color: var(--table-cell-color);
+}
+
+.content-wrapper .table a:hover {
+    color: var(--table-cell-color);
+    text-decoration: underline;
+}

@@ -1,0 +1,157 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Dashboard CESIZen{% endblock %}
+
+{% block main %}
+    <style>
+        .dashboard-shell {
+            background: linear-gradient(145deg, #f7fbf8 0%, #edf6ef 100%);
+            border: 1px solid #d9e9dd;
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+
+        .dashboard-header {
+            margin-bottom: 1rem;
+        }
+
+        .dashboard-header h2 {
+            margin: 0;
+            font-size: 1.15rem;
+            color: #195241;
+            font-weight: 700;
+        }
+
+        .dashboard-header p {
+            margin: 0.2rem 0 0;
+            color: #5d6f62;
+            font-size: 0.92rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .dashboard-card {
+            background: #ffffff;
+            border: 1px solid #e2ece4;
+            border-top: 3px solid #4f9c66;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(27, 62, 40, 0.05);
+        }
+
+        .dashboard-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .dashboard-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #e8f3eb;
+            color: #2f7a4a;
+            font-size: 0.95rem;
+        }
+
+        .dashboard-label {
+            font-size: 0.85rem;
+            color: #5f7164;
+            margin-bottom: 0;
+        }
+
+        .dashboard-value {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #1f5d3a;
+            line-height: 1;
+        }
+
+        .dashboard-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #2f7a4a;
+            background: #2f7a4a;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 0.52rem 0.9rem;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .dashboard-btn:hover {
+            background: #26653d;
+            border-color: #26653d;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+    </style>
+
+    <section class="dashboard-shell">
+        <div class="dashboard-header">
+            <h2>Vue d'ensemble</h2>
+            <p>Un suivi rapide de ton application.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="dashboard-card-head">
+                    <div class="dashboard-label">Utilisateurs</div>
+                    <span class="dashboard-icon"><i class="fas fa-user"></i></span>
+                </div>
+                <div class="dashboard-value">{{ stats.users }}</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-card-head">
+                    <div class="dashboard-label">Pages</div>
+                    <span class="dashboard-icon"><i class="fas fa-file-alt"></i></span>
+                </div>
+                <div class="dashboard-value">{{ stats.pages }}</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-card-head">
+                    <div class="dashboard-label">Menus</div>
+                    <span class="dashboard-icon"><i class="fas fa-bars"></i></span>
+                </div>
+                <div class="dashboard-value">{{ stats.menus }}</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-card-head">
+                    <div class="dashboard-label">Exercices</div>
+                    <span class="dashboard-icon"><i class="fas fa-heartbeat"></i></span>
+                </div>
+                <div class="dashboard-value">{{ stats.exercises }}</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-card-head">
+                    <div class="dashboard-label">Lancements</div>
+                    <span class="dashboard-icon"><i class="fas fa-play-circle"></i></span>
+                </div>
+                <div class="dashboard-value">{{ stats.launches }}</div>
+            </div>
+        </div>
+
+        <div class="dashboard-actions">
+            {% for link in quickLinks %}
+                <a class="dashboard-btn" href="{{ link.url }}">{{ link.label }}</a>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}
