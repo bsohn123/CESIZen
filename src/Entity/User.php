@@ -22,11 +22,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
 
-    #[ORM\Column(name: 'pseudo', length: 255)]
+    #[ORM\Column(name: 'pseudo', length: 255, unique: true)]
     private ?string $username = null;
 
-    #[ORM\Column(name: 'password', length: 255, unique: true)]
+    #[ORM\Column(name: 'password', length: 255)]
     private ?string $password = null;
+
+    /**
+     * @var list<string>
+     */
+    #[ORM\Column(type: Types::JSON)]
+    private array $roles = [];
 
     #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -34,7 +40,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'last_login_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $lastLoginAt = null;
 
-    #[ORM\Column(name: 'actif')]
+    #[ORM\Column(name: 'active')]
     private bool $active = true;
 
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: Page::class)]
@@ -43,15 +49,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Launch::class, orphanRemoval: true)]
     private Collection $launches;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: RoleAssignment::class, orphanRemoval: true)]
-    private Collection $roleAssignments;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->pages = new ArrayCollection();
         $this->launches = new ArrayCollection();
-        $this->roleAssignments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -174,35 +177,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, RoleAssignment>
-     */
-    public function getRoleAssignments(): Collection
-    {
-        return $this->roleAssignments;
-    }
-
-    public function addRoleAssignment(RoleAssignment $roleAssignment): static
-    {
-        if (!$this->roleAssignments->contains($roleAssignment)) {
-            $this->roleAssignments->add($roleAssignment);
-            $roleAssignment->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRoleAssignment(RoleAssignment $roleAssignment): static
-    {
-        if ($this->roleAssignments->removeElement($roleAssignment)) {
-            if ($roleAssignment->getUser() === $this) {
-                $roleAssignment->setUser(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * A visual identifier that represents this user.
      *
      * @see UserInterface
@@ -217,19 +191,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $roles = ['ROLE_USER'];
-
-        foreach ($this->roleAssignments as $roleAssignment) {
-            $roleCode = $roleAssignment->getRole()?->getRoleCode();
-
-            if ($roleCode === null || $roleCode == '') {
-                continue;
-            }
-
-            $roles[] = str_starts_with($roleCode, 'ROLE_') ? $roleCode : 'ROLE_'.strtoupper($roleCode);
-        }
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
 
         return array_values(array_unique($roles));
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+
+        return $this;
     }
 
     /**
