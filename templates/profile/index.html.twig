@@ -1,0 +1,661 @@
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil | CESIZen{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg: #f4faf7;
+            --card: #ffffff;
+            --line: #344054;
+            --line-soft: #667085;
+            --text: #111827;
+            --muted: #374151;
+            --nature-900: #0f3328;
+            --nature-800: #14532d;
+            --nature-700: #1f6a45;
+            --danger: #b42318;
+            --chip: #e7f4ec;
+            --chip-text: #12422a;
+            --success-bg: #eaf6ef;
+            --success-border: #c7e3d1;
+            --success-text: #1f5d3a;
+            --warning-bg: #fff7e8;
+            --warning-border: #f1d8a8;
+            --warning-text: #7a5a1c;
+            --focus-ring: #005fcc;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 12% 10%, rgba(35, 106, 84, 0.14) 0, transparent 34%),
+                radial-gradient(circle at 88% 88%, rgba(15, 51, 40, 0.1) 0, transparent 30%),
+                linear-gradient(160deg, #f4faf7 0%, #eaf4ef 100%);
+            padding: 1.15rem;
+        }
+
+        .page {
+            width: min(1380px, 100%);
+            margin: 0 auto;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid #d5dee8;
+            border-radius: 16px;
+            box-shadow: 0 14px 34px rgba(15, 51, 40, 0.08);
+        }
+
+        .flash {
+            border-radius: 12px;
+            border: 1px solid transparent;
+            padding: 0.74rem 0.92rem;
+            font-size: 0.93rem;
+            font-weight: 600;
+        }
+
+        .flash-prefix {
+            font-weight: 800;
+            margin-right: 0.32rem;
+        }
+
+        .flash-success {
+            background: var(--success-bg);
+            border-color: var(--success-border);
+            color: var(--success-text);
+        }
+
+        .flash-warning {
+            background: var(--warning-bg);
+            border-color: var(--warning-border);
+            color: var(--warning-text);
+        }
+
+        .hero {
+            padding: 1.25rem 1.45rem;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: start;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 6px;
+            background: linear-gradient(180deg, var(--nature-700), var(--nature-800));
+            opacity: 0.85;
+        }
+
+        .hero-left {
+            display: grid;
+            grid-template-columns: 168px 1fr;
+            gap: 1.1rem;
+            align-items: start;
+        }
+
+        .avatar-wrap {
+            display: grid;
+            justify-items: center;
+            gap: 0.58rem;
+        }
+
+        .avatar {
+            width: 134px;
+            height: 134px;
+            border-radius: 999px;
+            border: 2px solid #d3e5dc;
+            overflow: hidden;
+            background: #e7f0ff;
+            box-shadow: 0 8px 20px rgba(15, 51, 40, 0.14);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .helper {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.84rem;
+            text-align: center;
+            line-height: 1.35;
+        }
+
+        .avatar-form {
+            margin: 0;
+            display: grid;
+            justify-items: center;
+            gap: 0.45rem;
+        }
+
+        .avatar-input {
+            display: none;
+        }
+
+        .btn-compact {
+            padding: 0.5rem 0.78rem;
+            font-size: 0.84rem;
+        }
+
+        .identity h1 {
+            margin: 0;
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--nature-900);
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+        }
+
+        .verify-badge {
+            border: 1px solid #8d6f2f;
+            background: #fff7e1;
+            color: #59430f;
+            border-radius: 999px;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .meta-row {
+            margin-top: 0.52rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            color: #243442;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .chips {
+            margin-top: 0.7rem;
+            display: flex;
+            gap: 0.48rem;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            border-radius: 999px;
+            padding: 0.3rem 0.62rem;
+            border: 1px solid #2f6d4f;
+            background: var(--chip);
+            color: var(--chip-text);
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 0.62rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            border-radius: 10px;
+            border: 2px solid #344054;
+            padding: 0.62rem 0.98rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            background: #fff;
+            color: #1f2a37;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+            min-height: 44px;
+        }
+
+        .btn:hover {
+            background: #f2f4f7;
+            border-color: #1f2a37;
+            transform: translateY(-1px);
+        }
+
+        .btn:focus-visible,
+        .form-field input:focus-visible,
+        .avatar-input:focus-visible + label {
+            outline: 3px solid var(--focus-ring);
+            outline-offset: 2px;
+        }
+
+        .btn-outline-neutral {
+            background: #fff;
+            color: #1f2a37;
+            border-color: #344054;
+        }
+
+        .btn-outline-neutral:hover {
+            background: #f2f4f7;
+            border-color: #1f2a37;
+        }
+
+        .btn-outline-success {
+            background: #fff;
+            color: #0f5132;
+            border-color: #0f5132;
+        }
+
+        .btn-outline-success:hover {
+            background: #eaf6ef;
+            border-color: #0c3f27;
+        }
+
+        .btn-dark {
+            border-color: var(--nature-800);
+            background: var(--nature-800);
+            color: #fff;
+        }
+
+        .btn-dark:hover {
+            background: #174739;
+            border-color: #174739;
+        }
+
+        .btn-danger {
+            border-color: var(--danger);
+            background: #fff;
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #fff5f6;
+            border-color: #8e1c13;
+        }
+
+        .infos,
+        .panel {
+            width: min(860px, 100%);
+            padding: 1.1rem 1.2rem;
+        }
+
+        .infos-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.95rem;
+        }
+
+        .infos-title {
+            margin: 0;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--nature-900);
+        }
+
+        .infos-sub {
+            margin: 0.2rem 0 0;
+            color: var(--muted);
+            font-size: 0.97rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.78rem;
+        }
+
+        .field {
+            border: 1px solid #c8d4e0;
+            border-radius: 14px;
+            background: #fbfefd;
+            padding: 0.8rem 0.92rem;
+        }
+
+        .field-label {
+            margin: 0;
+            color: #374151;
+            font-size: 0.93rem;
+            font-weight: 700;
+        }
+
+        .field-value {
+            margin: 0.46rem 0 0;
+            color: var(--text);
+            font-size: 1.1rem;
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .field-wide {
+            grid-column: 1 / -1;
+        }
+
+        .roles {
+            margin-top: 0.4rem;
+            display: flex;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+        }
+
+        .role {
+            border: 1px solid #2f6d4f;
+            background: #e7f4ec;
+            color: #12422a;
+            border-radius: 999px;
+            padding: 0.24rem 0.56rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .panel h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--nature-900);
+        }
+
+        .panel p {
+            margin: 0.3rem 0 0.9rem;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 0.7rem;
+        }
+
+        .form-field {
+            display: grid;
+            gap: 0.35rem;
+        }
+
+        .form-field label {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .form-field input {
+            width: 100%;
+            border: 2px solid #667085;
+            border-radius: 10px;
+            padding: 0.62rem 0.7rem;
+            font-size: 0.94rem;
+            font-family: inherit;
+            background: #fff;
+            color: var(--text);
+        }
+
+        .form-field input:focus {
+            outline: none;
+            border-color: var(--nature-700);
+            box-shadow: 0 0 0 4px rgba(0, 95, 204, 0.22);
+        }
+
+        .panel-actions {
+            margin-top: 0.85rem;
+            display: flex;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 1040px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-actions {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 840px) {
+            .hero-left {
+                grid-template-columns: 1fr;
+            }
+
+            .avatar-wrap {
+                justify-items: flex-start;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .infos,
+            .panel {
+                width: 100%;
+            }
+
+            .hero,
+            .infos,
+            .panel {
+                padding: 1rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% set panel = active_panel|default('') %}
+
+    <section class="page">
+        {% for message in app.flashes('success') %}
+            <div class="flash flash-success">
+                <span class="flash-prefix">Succès :</span>{{ message }}
+            </div>
+        {% endfor %}
+        {% for message in app.flashes('warning') %}
+            <div class="flash flash-warning">
+                <span class="flash-prefix">Attention :</span>{{ message }}
+            </div>
+        {% endfor %}
+
+        {% set avatar_src = profile_user.imageName ? asset('uploads/profile/' ~ profile_user.imageName) : asset('images/avatar-default.svg') %}
+
+        <article class="card hero">
+            <div class="hero-left">
+                <div class="avatar-wrap">
+                    <div class="avatar">
+                        <img src="{{ avatar_src }}" alt="Photo de profil">
+                    </div>
+
+                    <form method="post" action="{{ path('app_profile_photo') }}" enctype="multipart/form-data" class="avatar-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token('profile_photo') }}">
+                        <input
+                            type="file"
+                            id="profile_photo"
+                            name="profile_photo"
+                            class="avatar-input"
+                            accept=".jpg,.jpeg,.png,.gif,.webp"
+                            onchange="if (this.files.length) { this.form.submit(); }"
+                        >
+                        <label class="btn btn-outline-neutral btn-compact" for="profile_photo">Modifier la photo</label>
+                        <p class="helper">JPG, PNG, GIF, WebP - 5 Mo max</p>
+                    </form>
+                </div>
+
+                <div class="identity">
+                    <h1>
+                        {{ profile_user.username }}
+                        <span class="verify-badge">Compte utilisateur</span>
+                    </h1>
+
+                    <div class="meta-row">
+                        <span>{{ profile_user.username }}</span>
+                        <span>{{ profile_user.email }}</span>
+                    </div>
+
+                    <div class="chips">
+                        {% for role in profile_user.roles %}
+                            <span class="chip">{{ role }}</span>
+                        {% else %}
+                            <span class="chip">ROLE_USER</span>
+                        {% endfor %}
+                        <span class="chip">Créé le {{ profile_user.createdAt ? profile_user.createdAt|date('d/m/Y') : 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-actions">
+                <button type="button" class="btn btn-outline-neutral" id="open-password-panel">Changer le mot de passe</button>
+                <a href="{{ path('app_logout') }}" class="btn btn-dark">Déconnexion</a>
+
+                <form method="post" action="{{ path('app_profile_delete') }}" onsubmit="return confirm('Confirmer la suppression définitive de votre compte ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('profile_delete') }}">
+                    <button type="submit" class="btn btn-danger">Supprimer mon compte</button>
+                </form>
+            </div>
+        </article>
+
+        <article class="card infos">
+            <header class="infos-head">
+                <div>
+                    <h2 class="infos-title">Informations</h2>
+                    <p class="infos-sub">Données de votre compte</p>
+                </div>
+                <button type="button" class="btn btn-outline-neutral" id="open-edit-panel">Modifier</button>
+            </header>
+
+            <div class="grid">
+                <div class="field">
+                    <p class="field-label">Email</p>
+                    <p class="field-value">{{ profile_user.email }}</p>
+                </div>
+
+                <div class="field">
+                    <p class="field-label">Username</p>
+                    <p class="field-value">{{ profile_user.username }}</p>
+                </div>
+
+                <div class="field field-wide">
+                    <p class="field-label">Date de création</p>
+                    <p class="field-value">{{ profile_user.createdAt ? profile_user.createdAt|date('d/m/Y à H:i') : 'Non disponible' }}</p>
+                </div>
+
+                <div class="field field-wide">
+                    <p class="field-label">Dernière connexion</p>
+                    <p class="field-value">{{ profile_user.lastLoginAt ? profile_user.lastLoginAt|date('d/m/Y à H:i') : 'Jamais' }}</p>
+                </div>
+
+                <div class="field field-wide">
+                    <p class="field-label">Rôles</p>
+                    <div class="roles">
+                        {% for role in profile_user.roles %}
+                            <span class="role">{{ role }}</span>
+                        {% else %}
+                            <span class="role">ROLE_USER</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article class="card panel" id="edit-panel" {% if panel != 'edit' %}hidden{% endif %}>
+            <h3>Modifier mes informations</h3>
+            <p>Mets à jour ton pseudo et ton email.</p>
+
+            <form method="post" action="{{ path('app_profile_edit') }}" class="form-grid">
+                <input type="hidden" name="_token" value="{{ csrf_token('profile_edit') }}">
+
+                <div class="form-field">
+                    <label for="edit_email">Email</label>
+                    <input type="email" id="edit_email" name="email" value="{{ profile_user.email }}" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="edit_username">Username</label>
+                    <input type="text" id="edit_username" name="username" value="{{ profile_user.username }}" minlength="3" required>
+                </div>
+
+                <div class="panel-actions">
+                    <button type="submit" class="btn btn-dark">Enregistrer</button>
+                    <button type="button" class="btn btn-outline-neutral" data-close-panel="edit-panel">Annuler</button>
+                </div>
+            </form>
+        </article>
+
+        <article class="card panel" id="password-panel" {% if panel != 'password' %}hidden{% endif %}>
+            <h3>Changer mon mot de passe</h3>
+            <p>Renseigne ton mot de passe actuel puis le nouveau.</p>
+
+            <form method="post" action="{{ path('app_profile_change_password') }}" class="form-grid">
+                <input type="hidden" name="_token" value="{{ csrf_token('profile_change_password') }}">
+
+                <div class="form-field">
+                    <label for="current_password">Mot de passe actuel</label>
+                    <input type="password" id="current_password" name="current_password" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="new_password">Nouveau mot de passe</label>
+                    <input type="password" id="new_password" name="new_password" minlength="8" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="confirm_password">Confirmer le nouveau mot de passe</label>
+                    <input type="password" id="confirm_password" name="confirm_password" minlength="8" required>
+                </div>
+
+                <div class="panel-actions">
+                    <button type="submit" class="btn btn-dark">Mettre à jour</button>
+                    <button type="button" class="btn btn-outline-neutral" data-close-panel="password-panel">Annuler</button>
+                </div>
+            </form>
+        </article>
+    </section>
+
+    <script>
+        (() => {
+            const editBtn = document.getElementById('open-edit-panel');
+            const passwordBtn = document.getElementById('open-password-panel');
+            const editPanel = document.getElementById('edit-panel');
+            const passwordPanel = document.getElementById('password-panel');
+            const closeButtons = document.querySelectorAll('[data-close-panel]');
+
+            const openPanel = (panelToOpen) => {
+                if (!editPanel || !passwordPanel) {
+                    return;
+                }
+
+                editPanel.hidden = panelToOpen !== 'edit';
+                passwordPanel.hidden = panelToOpen !== 'password';
+
+                const target = panelToOpen === 'edit' ? editPanel : passwordPanel;
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+
+            if (editBtn) {
+                editBtn.addEventListener('click', () => openPanel('edit'));
+            }
+
+            if (passwordBtn) {
+                passwordBtn.addEventListener('click', () => openPanel('password'));
+            }
+
+            closeButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const panelId = button.getAttribute('data-close-panel');
+                    const panel = panelId ? document.getElementById(panelId) : null;
+                    if (panel) {
+                        panel.hidden = true;
+                    }
+                });
+            });
+        })();
+    </script>
+{% endblock %}
+
