@@ -1,0 +1,146 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Respiration guidée | CESIZen{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/breathing.css') }}">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('scripts/breathing.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+<main
+    id="breathing-page"
+    class="page"
+    data-save-url="{{ path('app_breathing_launch') }}"
+    data-csrf-token="{{ csrf_token('breathing_launch') }}"
+    data-is-logged-in="{{ app.user ? '1' : '0' }}"
+>
+    <nav class="topbar" aria-label="Navigation respiration">
+        <a class="topbar-brand" href="{{ path('app_home') }}">CESIZen</a>
+        <div class="topbar-actions">
+            <a class="topbar-link" href="{{ path('app_home') }}">Accueil</a>
+            {% if app.user %}
+                <a class="topbar-link" href="{{ path('app_profile') }}">Mon profil</a>
+            {% else %}
+                <a class="topbar-link" href="{{ path('app_login') }}">Se connecter</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <section class="layout">
+        <article class="card exercise-list">
+            <h2>Exercices disponibles</h2>
+            <p>Choisis un exercice, règle ton nombre de cycles puis lance la session.</p>
+
+            <div class="exercise-items">
+                {% for exercise in exercises %}
+                    <button
+                        type="button"
+                        class="exercise-item{% if loop.first %} is-active{% endif %}"
+                        data-id="{{ exercise.id }}"
+                        data-name="{{ exercise.name }}"
+                        data-inhale="{{ exercise.inhaleDuration }}"
+                        data-hold="{{ exercise.holdDuration }}"
+                        data-exhale="{{ exercise.exhaleDuration }}"
+                    >
+                        <strong>{{ exercise.name }}</strong>
+                        <span>Inspire {{ exercise.inhaleDuration }}s - Bloque {{ exercise.holdDuration }}s - Expire {{ exercise.exhaleDuration }}s</span>
+                    </button>
+                {% else %}
+                    <p>Aucun exercice actif pour le moment.</p>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="card player">
+            <div class="player-head">
+                <div>
+                    <h2 id="exercise-title">Sélectionne un exercice</h2>
+                    <p class="sub" id="exercise-pattern">Pattern: -</p>
+                </div>
+                <div class="player-head-actions">
+                    <button type="button" id="focus-btn" class="btn btn-soft btn-compact">Mode focus</button>
+                    <span class="chip" id="session-state">Prêt</span>
+                </div>
+            </div>
+
+            <div class="breath">
+                <div id="breath-circle" class="breath-circle">
+                    <svg class="phase-ring" viewBox="0 0 260 260" aria-hidden="true">
+                        <circle class="phase-ring-track" cx="130" cy="130" r="112"></circle>
+                        <circle id="phase-ring-progress" class="phase-ring-progress" cx="130" cy="130" r="112"></circle>
+                    </svg>
+                    <div class="breath-center">
+                        <p class="phase" id="phase-label">Pret</p>
+                        <p class="countdown" id="phase-time">0s</p>
+                    </div>
+                </div>
+
+                <div class="guide-media">
+                    <img
+                        id="breathing-image"
+                        class="guide-image"
+                        src="{{ asset('images/respiration-guidee.png') }}"
+                        data-image-inhale="{{ asset('images/respiration-guidee.png') }}"
+                        data-image-hold="{{ asset('images/respiration-bloquee.png') }}"
+                        data-image-exhale="{{ asset('images/respiration-expiration.png') }}"
+                        alt="Guide visuel de respiration"
+                    >
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <small>Cycle</small>
+                    <strong id="cycle-current">0 / 0</strong>
+                </div>
+                <div class="stat">
+                    <small>Durée totale</small>
+                    <strong id="total-time">0s</strong>
+                </div>
+            </div>
+
+            <div class="session-progress">
+                <div class="session-progress-head">
+                    <small>Progression globale</small>
+                    <strong id="global-progress-label">0%</strong>
+                </div>
+                <div id="global-progress-track" class="session-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progression des cycles">
+                    <span id="global-progress-fill" class="session-progress-fill"></span>
+                </div>
+            </div>
+
+            <div class="config">
+                <label for="cycles">Cycles</label>
+                <input type="number" id="cycles" min="1" max="60" value="6">
+            </div>
+
+            <div class="controls">
+                <button type="button" id="start-btn" class="btn btn-primary">Démarrer</button>
+                <button type="button" id="pause-btn" class="btn btn-soft">Pause</button>
+                <button type="button" id="reset-btn" class="btn btn-soft">Réinitialiser</button>
+            </div>
+
+            <p class="status" id="session-status"></p>
+            <p id="phase-live" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+        </article>
+    </section>
+</main>
+
+<div id="completion-popup" class="completion-popup" hidden>
+    <div class="completion-popup-backdrop" data-popup-close></div>
+    <div class="completion-popup-card" role="dialog" aria-modal="true" aria-labelledby="completion-popup-title" aria-describedby="completion-popup-message">
+        <h3 id="completion-popup-title">Session terminée</h3>
+        <p id="completion-popup-message">Félicitations, vous avez terminé votre exercice.</p>
+        <div class="completion-popup-actions">
+            <button type="button" id="completion-popup-close" class="btn btn-soft">Fermer</button>
+            <button type="button" id="completion-popup-restart" class="btn btn-primary">Relancer</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

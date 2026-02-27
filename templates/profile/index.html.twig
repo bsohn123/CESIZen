@@ -211,6 +211,8 @@
             gap: 0.62rem;
             flex-wrap: wrap;
             justify-content: flex-end;
+            align-self: center;
+            margin-top: 0.9rem;
         }
 
         .btn {
@@ -419,6 +421,8 @@
 
             .hero-actions {
                 justify-content: flex-start;
+                align-self: auto;
+                margin-top: 0;
             }
         }
 
@@ -511,6 +515,9 @@
             </div>
 
             <div class="hero-actions">
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('admin') }}" class="btn btn-outline-success">Accéder au dashboard</a>
+                {% endif %}
                 <button type="button" class="btn btn-outline-neutral" id="open-password-panel">Changer le mot de passe</button>
                 <a href="{{ path('app_logout') }}" class="btn btn-dark">Déconnexion</a>
 

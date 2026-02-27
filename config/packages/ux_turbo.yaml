@@ -1,4 +1,4 @@
-# Enable stateless CSRF protection for forms and logins/logouts
+# Keep CSRF checks compatible with session-based tokens
 framework:
     csrf_protection:
-        check_header: true
+        check_header: false

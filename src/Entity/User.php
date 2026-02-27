@@ -91,6 +91,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->username;
     }
 
+    public function __toString(): string
+    {
+        if (!empty($this->username)) {
+            return (string) $this->username;
+        }
+
+        return (string) ($this->email ?? 'Utilisateur');
+    }
+
     public function setUsername(string $username): static
     {
         $this->username = $username;

@@ -1,0 +1,18 @@
+framework:
+    html_sanitizer:
+        sanitizers:
+            default:
+                allow_safe_elements: false
+                allow_elements:
+                    a: ['href', 'title', 'target', 'rel']
+                    br: []
+                    strong: []
+                    em: []
+                    b: []
+                    i: []
+                    code: []
+                allowed_link_schemes: ['http', 'https', 'mailto']
+                allow_relative_links: true
+                force_attributes:
+                    a:
+                        rel: 'noopener noreferrer'
