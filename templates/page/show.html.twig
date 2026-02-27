@@ -1,0 +1,151 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ page.title }} | CESIZen{% endblock %}
+
+{% block stylesheets %}
+<style>
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Manrope", sans-serif;
+    color: #14231f;
+    padding: 1.2rem;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(35,106,84,0.12), transparent 40%),
+        radial-gradient(circle at 85% 90%, rgba(15,51,40,0.08), transparent 40%),
+        linear-gradient(160deg, #f7fbf9 0%, #eef5f2 100%);
+}
+
+.resource-shell {
+    width: min(900px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 1rem;
+}
+
+.resource-card {
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(214, 228, 221, 0.85);
+    border-radius: 18px;
+    box-shadow: 0 22px 48px rgba(15, 51, 40, 0.08);
+    padding: 1.5rem;
+}
+
+.resource-back {
+    text-decoration: none;
+    color: #0f3328;
+    font-weight: 800;
+}
+
+.resource-meta {
+    margin: 0;
+    color: #5f6f69;
+    font-size: 0.92rem;
+}
+
+.resource-title {
+    margin: 0.35rem 0 0;
+    color: #0b251d;
+    font-size: clamp(1.6rem, 3vw, 2rem);
+}
+
+.resource-content {
+    margin-top: 1rem;
+    line-height: 1.8;
+    font-size: 1.02rem;
+    color: #243630;
+    max-width: 72ch;
+}
+
+.resource-content p {
+    margin: 0 0 1rem;
+}
+
+.resource-content h2 {
+    margin: 1.45rem 0 0.8rem;
+    font-size: 1.25rem;
+    line-height: 1.35;
+    color: #0f3328;
+}
+
+.resource-content ul {
+    margin: 0.25rem 0 1rem 1.25rem;
+    padding: 0;
+}
+
+.resource-content li {
+    margin-bottom: 0.45rem;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="resource-shell">
+    <div class="resource-card">
+        <a class="resource-back" href="{{ path('app_home') }}">&larr; Retour &agrave; l'accueil</a>
+    </div>
+
+    <article class="resource-card">
+        <p class="resource-meta">
+            {% if page.menu %}
+                {{ page.menu.title }} &middot;
+            {% endif %}
+            Publi&eacute; le {{ page.createdAt ? page.createdAt|date('d/m/Y') : 'N/A' }}
+        </p>
+        <h1 class="resource-title">{{ page.title }}</h1>
+
+        {# 1) Normalisation du texte venant du dashboard.
+           On convertit les retours HTML (<br>, </p>, </div>, <li>) en sauts de ligne texte
+           puis on retire les balises restantes pour obtenir un contenu brut exploitable. #}
+        {% set normalizedContent = page.content|default('')|replace({
+            "\r\n": "\n",
+            "\r": "\n",
+            "<br>": "\n",
+            "<br/>": "\n",
+            "<br />": "\n",
+            "<li>": "- ",
+            "</li>": "\n",
+            "</p>": "\n\n",
+            "</div>": "\n\n",
+            "&nbsp;": " ",
+            "&lt;": "<",
+            "&gt;": ">",
+            "&quot;": "\"",
+            "&#039;": "'"
+        })|striptags('<a><strong><em><b><i><code>') %}
+
+        <div class="resource-content">
+            {# 2) Découpage en "blocs" via ligne vide (\n\n).
+               Chaque bloc est ensuite analysé selon son préfixe. #}
+            {% for block in normalizedContent|split("\n\n") %}
+                {% set block = block|trim %}
+                {% if block is not empty %}
+                    {# "## " => sous-titre #}
+                    {% if block starts with '## ' %}
+                        <h2>{{ block|slice(3)|sanitize_html|raw }}</h2>
+                    {# "# " => titre de section (rendu en h2 ici aussi) #}
+                    {% elseif block starts with '# ' %}
+                        <h2>{{ block|slice(2)|sanitize_html|raw }}</h2>
+                    {# "- " => liste à puces.
+                       On relit chaque ligne du bloc pour générer les <li>. #}
+                    {% elseif block starts with '- ' %}
+                        <ul>
+                            {% for line in block|split("\n") %}
+                                {% set line = line|trim %}
+                                {% if line is not empty %}
+                                    {% set itemText = line starts with '- ' ? line|slice(2) : line %}
+                                    <li>{{ itemText|sanitize_html|raw }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {# Sinon => paragraphe standard #}
+                    {% else %}
+                        {% set paragraphHtml = block|replace({"\n": "<br>"}) %}
+                        <p>{{ paragraphHtml|sanitize_html|raw }}</p>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </article>
+</main>
+{% endblock %}

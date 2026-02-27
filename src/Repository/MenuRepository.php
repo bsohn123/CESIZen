@@ -15,4 +15,20 @@ class MenuRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Menu::class);
     }
+
+    public function findActiveWithPublishedPages(): array
+    {
+        $publishedStatuses = ['publiee', 'publie', 'published'];
+
+        return $this->createQueryBuilder('m')
+            ->leftJoin('m.pages', 'p', 'WITH', 'LOWER(p.status) IN (:statuses)')
+            ->addSelect('p')
+            ->where('m.active = :active')
+            ->setParameter('active', true)
+            ->setParameter('statuses', $publishedStatuses)
+            ->orderBy('m.displayOrder', 'ASC')
+            ->addOrderBy('p.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

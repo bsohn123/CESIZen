@@ -15,4 +15,17 @@ class BreathingExerciseRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, BreathingExercise::class);
     }
+
+    /**
+     * @return BreathingExercise[]
+     */
+    public function findActiveOrdered(): array
+    {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.active = :active')
+            ->setParameter('active', true)
+            ->orderBy('e.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
