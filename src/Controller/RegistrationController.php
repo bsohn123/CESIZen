@@ -91,6 +91,6 @@ class RegistrationController extends AbstractController
             'register_email' => $email,
             'register_username' => $username,
             'register_accept_terms' => $acceptTerms,
-        ]);
+        ], $errors ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 }

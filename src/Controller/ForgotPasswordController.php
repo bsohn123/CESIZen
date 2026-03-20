@@ -104,7 +104,7 @@ class ForgotPasswordController extends AbstractController
             return $this->render('security/reset_password.html.twig', [
                 'token'  => $token,
                 'errors' => $errors,
-            ]);
+            ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
         }
 
         return $this->render('security/reset_password.html.twig', [
