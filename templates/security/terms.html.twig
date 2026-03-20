@@ -28,8 +28,6 @@
             background:
                 linear-gradient(160deg, rgba(238, 247, 242, 0.86) 0%, rgba(229, 240, 234, 0.82) 100%),
                 url('{{ asset('images/login-bg.jpg') }}') center/cover no-repeat;
-            display: grid;
-            place-items: center;
             padding: 1.25rem;
         }
 
@@ -146,13 +144,16 @@
 {% endblock %}
 
 {% block body %}
-    <section class="card">
-        <header class="head">
+    <section class="site-shell site-shell--sm">
+        {% include 'partials/_site_nav.html.twig' %}
+
+        <div class="card">
+            <header class="head">
             <h1>Conditions Générales d’Utilisation – CESIZen</h1>
             <p>Version en vigueur.</p>
-        </header>
+            </header>
 
-        <main class="content">
+            <main class="content">
             <article class="section">
                 <h2>1. Objet</h2>
                 <p>Les présentes Conditions Générales d’Utilisation (CGU) ont pour objet de définir les modalités d’accès et d’utilisation de l’application web CESIZen.</p>
@@ -233,11 +234,12 @@ L’utilisateur est seul responsable de la confidentialité de son mot de passe 
                 <h2>8. Droit applicable</h2>
                 <p>Les présentes conditions sont régies par le droit français.</p>
             </article>
-        </main>
+            </main>
 
-        <footer class="foot">
+            <footer class="foot">
             <a class="btn btn-primary" href="{{ path('app_register') }}">Retour à l’inscription</a>
             <a class="btn btn-secondary" href="{{ path('app_login') }}">Aller à la connexion</a>
-        </footer>
+            </footer>
+        </div>
     </section>
 {% endblock %}

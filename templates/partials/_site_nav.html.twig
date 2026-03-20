@@ -1,0 +1,37 @@
+{% set current_route = active_route|default(app.request.attributes.get('_route')|default('')) %}
+{% set is_home = current_route == 'app_home' %}
+{% set is_resources = current_route in ['app_resources_wellbeing', 'app_page_show'] %}
+{% set is_breathing = current_route in ['app_breathing_guided', 'app_breathing_launch'] %}
+{% set is_tracking = current_route == 'app_personal_tracking' %}
+{% set is_profile = current_route starts with 'app_profile' %}
+
+<nav class="site-nav" aria-label="Navigation principale">
+    <div class="site-nav__row">
+        <div class="site-nav__top">
+            <a class="site-nav__brand" href="{{ path('app_home') }}">CESIZen</a>
+
+            <div class="site-nav__actions">
+                {% if app.user %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a class="site-nav__action site-nav__action--soft" href="{{ path('admin') }}">Admin</a>
+                    {% endif %}
+                    <a class="site-nav__action site-nav__action--soft" href="{{ path('app_profile') }}">Profil</a>
+                    <a class="site-nav__action site-nav__action--primary" href="{{ path('app_logout') }}">Déconnexion</a>
+                {% else %}
+                    <a class="site-nav__action site-nav__action--soft" href="{{ path('app_login') }}">Connexion</a>
+                    <a class="site-nav__action site-nav__action--primary" href="{{ path('app_register') }}">Créer un compte</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="site-nav__links">
+            <a class="site-nav__link{{ is_home ? ' is-active' : '' }}" href="{{ path('app_home') }}" {{ is_home ? 'aria-current="page"' : '' }}>Accueil</a>
+            <a class="site-nav__link{{ is_resources ? ' is-active' : '' }}" href="{{ path('app_resources_wellbeing') }}" {{ is_resources ? 'aria-current="page"' : '' }}>Ressources</a>
+            <a class="site-nav__link{{ is_breathing ? ' is-active' : '' }}" href="{{ path('app_breathing_guided') }}" {{ is_breathing ? 'aria-current="page"' : '' }}>Respiration</a>
+            <a class="site-nav__link{{ is_tracking ? ' is-active' : '' }}" href="{{ app.user ? path('app_personal_tracking') : path('app_login') }}" {{ is_tracking ? 'aria-current="page"' : '' }}>Suivi personnel</a>
+            {% if app.user %}
+                <a class="site-nav__link{{ is_profile ? ' is-active' : '' }}" href="{{ path('app_profile') }}" {{ is_profile ? 'aria-current="page"' : '' }}>Mon profil</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

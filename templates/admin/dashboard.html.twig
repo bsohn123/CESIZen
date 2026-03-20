@@ -9,76 +9,207 @@
             border: 1px solid #d9e9dd;
             border-radius: 16px;
             padding: 1.25rem;
-        }
-
-        .dashboard-header {
-            margin-bottom: 1rem;
+            display: grid;
+            gap: 1rem;
         }
 
         .dashboard-header h2 {
             margin: 0;
-            font-size: 1.15rem;
+            font-size: 1.2rem;
             color: #195241;
-            font-weight: 700;
+            font-weight: 800;
         }
 
         .dashboard-header p {
-            margin: 0.2rem 0 0;
+            margin: 0.3rem 0 0;
             color: #5d6f62;
             font-size: 0.92rem;
         }
 
-        .dashboard-grid {
+        .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.8rem;
         }
 
-        .dashboard-card {
+        .kpi-card {
             background: #ffffff;
             border: 1px solid #e2ece4;
             border-top: 3px solid #4f9c66;
             border-radius: 12px;
-            padding: 1rem;
+            padding: 0.9rem;
             box-shadow: 0 4px 12px rgba(27, 62, 40, 0.05);
         }
 
-        .dashboard-card-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.25rem;
-        }
-
-        .dashboard-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #e8f3eb;
-            color: #2f7a4a;
-            font-size: 0.95rem;
-        }
-
-        .dashboard-label {
-            font-size: 0.85rem;
+        .kpi-label {
+            margin: 0;
+            font-size: 0.82rem;
             color: #5f7164;
-            margin-bottom: 0;
+            font-weight: 700;
         }
 
-        .dashboard-value {
-            font-size: 1.7rem;
-            font-weight: 700;
-            color: #1f5d3a;
+        .kpi-value {
+            margin: 0.35rem 0 0;
+            font-size: 1.75rem;
             line-height: 1;
+            color: #1f5d3a;
+            font-weight: 800;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 0.8rem;
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e2ece4;
+            border-radius: 12px;
+            padding: 0.95rem;
+            box-shadow: 0 4px 12px rgba(27, 62, 40, 0.05);
+        }
+
+        .panel h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #195241;
+            font-weight: 800;
+        }
+
+        .panel-sub {
+            margin: 0.25rem 0 0.85rem;
+            font-size: 0.84rem;
+            color: #607266;
+        }
+
+        .daily-chart {
+            display: grid;
+            grid-template-columns: repeat(30, minmax(8px, 1fr));
+            gap: 0.26rem;
+            align-items: end;
+            min-height: 140px;
+        }
+
+        .daily-item {
+            display: grid;
+            justify-items: center;
+        }
+
+        .daily-bar-track {
+            width: 100%;
+            height: 130px;
+            border: 1px solid #deebe2;
+            border-radius: 6px;
+            background: #f8fcf9;
+            padding: 0.12rem;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .daily-bar-fill {
+            width: 100%;
+            border-radius: 4px;
+            background: linear-gradient(180deg, #6bb589 0%, #2f7a4a 100%);
+            min-height: 0;
+        }
+
+        .daily-axis {
+            margin-top: 0.45rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0 0.1rem;
+        }
+
+        .daily-axis-label {
+            font-size: 0.68rem;
+            color: #607266;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .top-list {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .top-item {
+            display: grid;
+            grid-template-columns: 1fr 130px 36px;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .top-name {
+            font-size: 0.82rem;
+            color: #27463a;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-track {
+            height: 8px;
+            border-radius: 999px;
+            background: #eaf3ed;
+            border: 1px solid #dbe9e0;
+            overflow: hidden;
+        }
+
+        .top-fill {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #4fa56e, #2f7a4a);
+        }
+
+        .top-count {
+            font-size: 0.78rem;
+            color: #315546;
+            font-weight: 800;
+            text-align: right;
+        }
+
+        .todo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.8rem;
+        }
+
+        .todo-list {
+            margin: 0.55rem 0 0;
+            padding: 0;
+            list-style: none;
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .todo-item {
+            border: 1px solid #e5ede7;
+            border-radius: 10px;
+            background: #fbfefd;
+            padding: 0.55rem 0.6rem;
+        }
+
+        .todo-title {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #223e34;
+            font-weight: 700;
+        }
+
+        .todo-meta {
+            margin: 0.2rem 0 0;
+            font-size: 0.74rem;
+            color: #66786e;
         }
 
         .dashboard-actions {
             display: flex;
-            gap: 0.75rem;
+            gap: 0.65rem;
             flex-wrap: wrap;
         }
 
@@ -90,66 +221,149 @@
             background: #2f7a4a;
             color: #ffffff;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
             border-radius: 10px;
-            padding: 0.52rem 0.9rem;
-            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.85rem;
         }
 
         .dashboard-btn:hover {
             background: #26653d;
             border-color: #26653d;
             color: #ffffff;
-            transform: translateY(-1px);
+        }
+
+        .empty {
+            margin: 0.25rem 0 0;
+            font-size: 0.82rem;
+            color: #607266;
+        }
+
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .charts-grid { grid-template-columns: 1fr; }
+            .todo-grid { grid-template-columns: 1fr; }
         }
     </style>
 
     <section class="dashboard-shell">
-        <div class="dashboard-header">
-            <h2>Vue d'ensemble</h2>
-            <p>Un suivi rapide de ton application.</p>
-        </div>
+        <header class="dashboard-header">
+            <h2>Pilotage essentiel</h2>
+            <p>Vue globale instantan&eacute;e pour prendre les bonnes d&eacute;cisions en moins de 10 secondes.</p>
+        </header>
 
-        <div class="dashboard-grid">
-            <div class="dashboard-card">
-                <div class="dashboard-card-head">
-                    <div class="dashboard-label">Utilisateurs</div>
-                    <span class="dashboard-icon"><i class="fas fa-user"></i></span>
+        <section class="kpi-grid" aria-label="Indicateurs cles">
+            <article class="kpi-card">
+                <p class="kpi-label">Sessions aujourd'hui</p>
+                <p class="kpi-value">{{ kpis.sessions_today }}</p>
+            </article>
+            <article class="kpi-card">
+                <p class="kpi-label">Sessions 7 jours</p>
+                <p class="kpi-value">{{ kpis.sessions_last7 }}</p>
+            </article>
+            <article class="kpi-card">
+                <p class="kpi-label">Utilisateurs actifs 7 jours</p>
+                <p class="kpi-value">{{ kpis.active_users_last7 }}</p>
+            </article>
+            <article class="kpi-card">
+                <p class="kpi-label">Pages publiees</p>
+                <p class="kpi-value">{{ kpis.published_pages }}</p>
+            </article>
+        </section>
+
+        <section class="charts-grid">
+            <article class="panel">
+                <h3>Sessions par jour (30 jours)</h3>
+                <p class="panel-sub">Tendance d'utilisation globale.</p>
+
+                <div class="daily-chart">
+                    {% for point in charts.daily_series %}
+                        {% set ratio = charts.daily_max > 0 ? (point.count / charts.daily_max) : 0 %}
+                        {% set height = (ratio * 100)|round(0, 'floor') %}
+                        <div class="daily-item" title="{{ point.label }}: {{ point.count }}">
+                            <div class="daily-bar-track">
+                                <span class="daily-bar-fill" style="height: {{ height }}%;"></span>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
-                <div class="dashboard-value">{{ stats.users }}</div>
-            </div>
-            <div class="dashboard-card">
-                <div class="dashboard-card-head">
-                    <div class="dashboard-label">Pages</div>
-                    <span class="dashboard-icon"><i class="fas fa-file-alt"></i></span>
+                <div class="daily-axis" aria-hidden="true">
+                    {% for point in charts.daily_series %}
+                        {% if loop.index0 % 5 == 0 or loop.last %}
+                            <span class="daily-axis-label">{{ point.label }}</span>
+                        {% endif %}
+                    {% endfor %}
                 </div>
-                <div class="dashboard-value">{{ stats.pages }}</div>
-            </div>
-            <div class="dashboard-card">
-                <div class="dashboard-card-head">
-                    <div class="dashboard-label">Menus</div>
-                    <span class="dashboard-icon"><i class="fas fa-bars"></i></span>
-                </div>
-                <div class="dashboard-value">{{ stats.menus }}</div>
-            </div>
-            <div class="dashboard-card">
-                <div class="dashboard-card-head">
-                    <div class="dashboard-label">Exercices</div>
-                    <span class="dashboard-icon"><i class="fas fa-heartbeat"></i></span>
-                </div>
-                <div class="dashboard-value">{{ stats.exercises }}</div>
-            </div>
-            <div class="dashboard-card">
-                <div class="dashboard-card-head">
-                    <div class="dashboard-label">Lancements</div>
-                    <span class="dashboard-icon"><i class="fas fa-play-circle"></i></span>
-                </div>
-                <div class="dashboard-value">{{ stats.launches }}</div>
-            </div>
-        </div>
+            </article>
+
+            <article class="panel">
+                <h3>Top 5 exercices utilises</h3>
+                <p class="panel-sub">Sur les 7 derniers jours.</p>
+
+                {% if charts.top_exercises is not empty %}
+                    <div class="top-list">
+                        {% for item in charts.top_exercises %}
+                            {% set ratio = charts.top_exercises_max > 0 ? (item.launches / charts.top_exercises_max) : 0 %}
+                            {% set width = (ratio * 100)|round(0, 'floor') %}
+                            <div class="top-item">
+                                <div class="top-name">{{ item.name }}</div>
+                                <div class="top-track">
+                                    <span class="top-fill" style="width: {{ width }}%;"></span>
+                                </div>
+                                <div class="top-count">{{ item.launches }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty">Aucune donn&eacute;e d'exercice sur la p&eacute;riode.</p>
+                {% endif %}
+            </article>
+        </section>
+
+        <section class="todo-grid">
+            <article class="panel">
+                <h3>A traiter - Pages brouillon</h3>
+                {% if todo.draft_pages is not empty %}
+                    <ul class="todo-list">
+                        {% for page in todo.draft_pages %}
+                            <li class="todo-item">
+                                <p class="todo-title">{{ page.title }}</p>
+                                <p class="todo-meta">
+                                    {{ page.menu ? page.menu.title : 'Sans categorie' }}
+                                    &middot;
+                                    {{ page.createdAt ? page.createdAt|date('d/m/Y H:i') : 'Date inconnue' }}
+                                </p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="empty">Aucun brouillon &agrave; traiter.</p>
+                {% endif %}
+            </article>
+
+            <article class="panel">
+                <h3>A traiter - Pages archivees</h3>
+                {% if todo.archived_pages is not empty %}
+                    <ul class="todo-list">
+                        {% for page in todo.archived_pages %}
+                            <li class="todo-item">
+                                <p class="todo-title">{{ page.title }}</p>
+                                <p class="todo-meta">
+                                    {{ page.menu ? page.menu.title : 'Sans categorie' }}
+                                    &middot;
+                                    {{ page.createdAt ? page.createdAt|date('d/m/Y H:i') : 'Date inconnue' }}
+                                </p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="empty">Aucune page archivee &agrave; revoir.</p>
+                {% endif %}
+            </article>
+        </section>
 
         <div class="dashboard-actions">
-            {% for link in quickLinks %}
+            {% for link in quick_links %}
                 <a class="dashboard-btn" href="{{ link.url }}">{{ link.label }}</a>
             {% endfor %}
         </div>

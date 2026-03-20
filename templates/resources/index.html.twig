@@ -1,0 +1,355 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ressources bien-&ecirc;tre | CESIZen{% endblock %}
+
+{% block stylesheets %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --nature-950: #0b251d;
+    --nature-900: #0f3328;
+    --nature-800: #195241;
+    --nature-700: #236a54;
+    --text: #14231f;
+    --muted: #5f6f69;
+    --line: rgba(214, 228, 221, 0.9);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Manrope", sans-serif;
+    color: var(--text);
+    padding: 1.2rem;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(35,106,84,0.12), transparent 40%),
+        radial-gradient(circle at 85% 90%, rgba(15,51,40,0.08), transparent 40%),
+        linear-gradient(160deg, rgba(247,251,249,0.9) 0%, rgba(238,245,242,0.88) 100%),
+        url('{{ asset('images/login-bg.jpg') }}') center/cover no-repeat fixed;
+}
+
+.page-shell {
+    width: min(1040px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 1rem;
+}
+
+.topbar {
+    background: rgba(255,255,255,0.82);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 16px 32px rgba(15, 51, 40, 0.08);
+    padding: 0.55rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.topbar-brand {
+    text-decoration: none;
+    color: var(--nature-950);
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+.topbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.topbar-link {
+    text-decoration: none;
+    color: var(--nature-900);
+    border-radius: 11px;
+    border: 1px solid transparent;
+    padding: 0.42rem 0.72rem;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.topbar-link:hover {
+    background: rgba(255,255,255,0.75);
+    border-color: rgba(198, 220, 210, 0.8);
+}
+
+.topbar-link.is-active {
+    background: rgba(35,106,84,0.1);
+    border-color: rgba(35,106,84,0.18);
+}
+
+.card {
+    background: rgba(255,255,255,0.85);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 22px 48px rgba(15, 51, 40, 0.08);
+    padding: 1.2rem;
+}
+
+.hero-title {
+    margin: 0;
+    color: var(--nature-950);
+    font-size: clamp(1.7rem, 3vw, 2.2rem);
+    letter-spacing: -0.02em;
+}
+
+.hero-sub {
+    margin: 0.55rem 0 0;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.toolbar {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.55rem;
+}
+
+.input,
+.select {
+    border: 1px solid rgba(188, 213, 202, 0.95);
+    background: rgba(255,255,255,0.92);
+    border-radius: 11px;
+    padding: 0.6rem 0.72rem;
+    font-size: 0.9rem;
+    color: var(--nature-900);
+    min-height: 42px;
+}
+
+.input:focus,
+.select:focus {
+    outline: 2px solid rgba(31, 106, 83, 0.34);
+    outline-offset: 1px;
+}
+
+.btn {
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    padding: 0.58rem 0.92rem;
+    min-height: 42px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary {
+    color: #fff;
+    background: linear-gradient(155deg, var(--nature-800), var(--nature-900));
+}
+
+.btn-primary:hover {
+    background: linear-gradient(155deg, #174739, #0f3328);
+}
+
+.btn-soft {
+    color: var(--nature-900);
+    background: rgba(255,255,255,0.88);
+    border-color: rgba(188, 213, 202, 0.95);
+}
+
+.btn-soft:hover {
+    background: #fff;
+}
+
+.featured {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.meta {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 0.2rem 0.58rem;
+    border-radius: 999px;
+    border: 1px solid rgba(35,106,84,0.24);
+    background: rgba(35,106,84,0.1);
+    color: var(--nature-900);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.featured h2 {
+    margin: 0.1rem 0 0;
+    color: var(--nature-950);
+    font-size: clamp(1.35rem, 2.5vw, 1.7rem);
+}
+
+.featured p {
+    margin: 0.3rem 0 0;
+    color: #31463f;
+    line-height: 1.65;
+}
+
+.resources-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.resource-card {
+    border: 1px solid rgba(214, 228, 221, 0.95);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.88);
+    padding: 0.95rem;
+    display: grid;
+    gap: 0.4rem;
+}
+
+.resource-card h3 {
+    margin: 0.2rem 0 0;
+    color: var(--nature-950);
+    font-size: 1.05rem;
+}
+
+.resource-card p {
+    margin: 0.2rem 0 0;
+    color: #3f5750;
+    line-height: 1.55;
+    font-size: 0.9rem;
+}
+
+.empty {
+    color: var(--muted);
+    margin: 0;
+    padding: 0.65rem;
+    border: 1px dashed rgba(198, 220, 210, 0.95);
+    border-radius: 10px;
+}
+
+.cta {
+    border-radius: 18px;
+    background: linear-gradient(155deg, rgba(9,33,26,0.95), rgba(25,82,65,0.92));
+    color: #fff;
+    padding: 1.15rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    box-shadow: 0 22px 52px rgba(15, 51, 40, 0.2);
+}
+
+.cta p {
+    margin: 0;
+    font-weight: 700;
+}
+
+@media (max-width: 860px) {
+    .topbar { flex-wrap: wrap; }
+    .toolbar { grid-template-columns: 1fr; }
+    .resources-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    {% include 'partials/_site_nav.html.twig' with { active_route: 'app_resources_wellbeing' } %}
+    <nav class="topbar" aria-label="Navigation ressources" hidden>
+        <a class="topbar-brand" href="{{ path('app_home') }}">CESIZen</a>
+        <div class="topbar-nav">
+            <a class="topbar-link" href="{{ path('app_home') }}">Accueil</a>
+            <a class="topbar-link" href="{{ path('app_breathing_guided') }}">Respiration guid&eacute;e</a>
+            <a class="topbar-link is-active" href="{{ path('app_resources_wellbeing') }}" aria-current="page">Ressources bien-&ecirc;tre</a>
+        </div>
+    </nav>
+
+    <section class="card">
+        <h1 class="hero-title">Ressources bien-&ecirc;tre</h1>
+        <p class="hero-sub">
+            Articles, routines et contenus pratiques pour mieux g&eacute;rer le stress, renforcer la concentration et soutenir ton &eacute;quilibre mental.
+        </p>
+
+        <form class="toolbar" method="get" action="{{ path('app_resources_wellbeing') }}">
+            <input
+                class="input"
+                type="search"
+                name="q"
+                value="{{ search }}"
+                placeholder="Rechercher une ressource..."
+                aria-label="Rechercher une ressource"
+            >
+
+            <select class="select" name="menu" aria-label="Filtrer par cat&eacute;gorie">
+                <option value="">Toutes les cat&eacute;gories</option>
+                {% for menu in menu_choices %}
+                    <option value="{{ menu.id }}" {{ selected_menu_id == menu.id ? 'selected' : '' }}>
+                        {{ menu.title }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button class="btn btn-primary" type="submit">Filtrer</button>
+        </form>
+    </section>
+
+    <section class="card">
+        {% if featured_resource %}
+            <article class="featured">
+                <span class="meta">
+                    {{ featured_resource.menu ? featured_resource.menu.title : 'Article' }}
+                    {% if featured_resource.createdAt %}
+                        &middot; {{ featured_resource.createdAt|date('d/m/Y') }}
+                    {% endif %}
+                </span>
+                <h2>{{ featured_resource.title }}</h2>
+                <p>
+                    {{ featured_resource.content|striptags|slice(0, 250) }}
+                    {% if featured_resource.content|striptags|length > 250 %}...{% endif %}
+                </p>
+                <div>
+                    <a class="btn btn-soft" href="{{ path('app_page_show', { slug: featured_resource.slug }) }}">Lire la ressource &agrave; la une</a>
+                </div>
+            </article>
+        {% else %}
+            <p class="empty">Aucune ressource ne correspond &agrave; ta recherche pour le moment.</p>
+        {% endif %}
+    </section>
+
+    <section class="card">
+        {% if resources is not empty %}
+            <div class="resources-grid">
+                {% for page in resources %}
+                    <article class="resource-card">
+                        <span class="meta">
+                            {{ page.menu ? page.menu.title : 'Article' }}
+                            {% if page.createdAt %}
+                                &middot; {{ page.createdAt|date('d/m/Y') }}
+                            {% endif %}
+                        </span>
+                        <h3>{{ page.title }}</h3>
+                        <p>
+                            {{ page.content|striptags|slice(0, 140) }}
+                            {% if page.content|striptags|length > 140 %}...{% endif %}
+                        </p>
+                        <div>
+                            <a class="btn btn-soft" href="{{ path('app_page_show', { slug: page.slug }) }}">Lire</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% elseif featured_resource %}
+            <p class="empty">La ressource &agrave; la une est disponible ci-dessus. Ajoute d'autres contenus pour enrichir la biblioth&egrave;que.</p>
+        {% else %}
+            <p class="empty">Aucune ressource publi&eacute;e pour le moment.</p>
+        {% endif %}
+    </section>
+
+    <section class="cta">
+        <p>Pr&ecirc;t &agrave; passer &agrave; l'action ? Lance une session guid&eacute;e maintenant.</p>
+        <a class="btn btn-soft" href="{{ path('app_breathing_guided') }}">Lancer un exercice</a>
+    </section>
+</main>
+{% endblock %}

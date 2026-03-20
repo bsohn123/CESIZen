@@ -4,7 +4,6 @@
 
     const cards = Array.from(document.querySelectorAll('.exercise-item'));
     const titleEl = document.getElementById('exercise-title');
-    const patternEl = document.getElementById('exercise-pattern');
     const circleEl = document.getElementById('breath-circle');
     const ringProgressEl = document.getElementById('phase-ring-progress');
     const imageEl = document.getElementById('breathing-image');
@@ -20,6 +19,9 @@
     const globalProgressLabelEl = document.getElementById('global-progress-label');
     const globalProgressTrackEl = document.getElementById('global-progress-track');
     const focusBtn = document.getElementById('focus-btn');
+    const userMenuEl = root.querySelector('.user-menu');
+    const userMenuTriggerEl = document.getElementById('user-menu-trigger');
+    const userMenuDropdownEl = document.getElementById('user-menu-dropdown');
     const completionPopupEl = document.getElementById('completion-popup');
     const completionPopupMessageEl = document.getElementById('completion-popup-message');
     const completionPopupCloseBtn = document.getElementById('completion-popup-close');
@@ -36,9 +38,12 @@
 
     const ringRadius = 112;
     const ringCircumference = 2 * Math.PI * ringRadius;
+    const mobileFocusQuery = window.matchMedia('(max-width: 980px)');
+    // Calibration: < 1 ralentit le timer pour compenser une sensation de vitesse.
+    const TIMER_SPEED_FACTOR = 0.75;
 
     const phaseLabel = {
-        ready: 'Pret',
+        ready: 'Pr\u00eat',
         inhale: 'Inspire',
         hold: 'Bloque',
         exhale: 'Expire'
@@ -62,8 +67,13 @@
     let elapsed = 0;
     let running = false;
     let rafId = null;
-    let lastFrameMs = 0;
+    let sessionStartMs = 0;
+    let phaseStartMs = 0;
+    let pauseStartMs = 0;
+    let pausedTotalMs = 0;
     let focusMode = false;
+    let focusAutoEnabledByMobile = false;
+    let userMenuOpen = false;
     let phaseSwitchTimeout = null;
     let lastFocusedBeforePopup = null;
 
@@ -107,6 +117,13 @@
         sessionStateEl.dataset.state = stateKey;
     };
 
+    const setUserMenuOpen = (isOpen) => {
+        if (!userMenuEl || !userMenuTriggerEl) return;
+        userMenuOpen = isOpen;
+        userMenuEl.classList.toggle('is-open', isOpen);
+        userMenuTriggerEl.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    };
+
     const openCompletionPopup = (message) => {
         if (!completionPopupEl) return;
         lastFocusedBeforePopup = document.activeElement;
@@ -116,6 +133,7 @@
         completionPopupEl.hidden = false;
         if (completionPopupRestartBtn) {
             completionPopupRestartBtn.focus();
+            
         } else if (completionPopupCloseBtn) {
             completionPopupCloseBtn.focus();
         }
@@ -180,16 +198,15 @@
     const announcePhase = (nextPhase) => {
         if (!phaseLiveEl) return;
         if (nextPhase === 'ready') {
-            phaseLiveEl.textContent = 'Session prete';
+            phaseLiveEl.textContent = 'Session pr\u00eate';
             return;
         }
         phaseLiveEl.textContent = `${phaseLabel[nextPhase]} pendant ${Math.round(phaseDuration)} secondes`;
     };
 
-    const setPhase = (nextPhase) => {
+    const setPhase = (nextPhase, nowMs = performance.now(), carrySeconds = 0) => {
         phase = nextPhase;
         phaseDuration = 0;
-        phaseElapsed = 0;
 
         if (nextPhase === 'inhale') {
             phaseDuration = selected ? selected.inhale : 0;
@@ -199,8 +216,17 @@
             phaseDuration = selected ? selected.exhale : 0;
         }
 
+        const maxCarry = phaseDuration > 0 ? phaseDuration : 0;
+        phaseElapsed = clamp(carrySeconds, 0, maxCarry);
+        phaseStartMs = nowMs - (phaseElapsed * 1000);
+
         phaseLabelEl.textContent = phaseLabel[nextPhase];
-        phaseTimeEl.textContent = nextPhase === 'ready' ? '0s' : `${Math.round(phaseDuration)}s`;
+        if (nextPhase === 'ready' || phaseDuration <= 0) {
+            phaseTimeEl.textContent = '0s';
+        } else {
+            const remaining = Math.max(1, Math.ceil(phaseDuration - phaseElapsed));
+            phaseTimeEl.textContent = `${remaining}s`;
+        }
 
         if (ringProgressEl) {
             ringProgressEl.style.stroke = phaseColor[nextPhase];
@@ -302,12 +328,10 @@
             cancelAnimationFrame(rafId);
             rafId = null;
         }
-        lastFrameMs = 0;
     };
 
     const startLoop = () => {
         stopLoop();
-        lastFrameMs = performance.now();
         rafId = requestAnimationFrame(onFrame);
     };
 
@@ -331,62 +355,70 @@
         }
     };
 
-    const finishSession = () => {
+    const finishSession = (nowMs = performance.now()) => {
         running = false;
         stopLoop();
         elapsed = getTotalTargetSeconds();
         cycleCurrent = cycleTarget;
-        setPhase('ready');
-        setSessionState('Termine', 'done');
-        statusEl.textContent = 'Session terminee. Bon travail.';
+        setPhase('ready', nowMs, 0);
+        setSessionState('Termin\u00e9', 'done');
+        statusEl.textContent = 'Session termin\u00e9e. Bon travail.';
         updateUi();
-        openCompletionPopup(`Felicitations ! Vous avez termine ${cycleTarget} cycle${cycleTarget > 1 ? 's' : ''} en ${Math.round(elapsed)} secondes.`);
+        openCompletionPopup(`F\u00e9licitations ! Vous avez termin\u00e9 ${cycleTarget} cycle${cycleTarget > 1 ? 's' : ''} en ${Math.round(elapsed)} secondes.`);
         saveLaunch();
     };
 
-    const goToNextPhase = () => {
+    const goToNextPhase = (nowMs) => {
         if (phase === 'inhale') {
-            setPhase('hold');
+            setPhase('hold', nowMs, 0);
             return true;
         }
         if (phase === 'hold') {
-            setPhase('exhale');
+            setPhase('exhale', nowMs, 0);
             return true;
         }
         if (phase === 'exhale') {
             if (cycleCurrent >= cycleTarget) {
-                finishSession();
+                finishSession(nowMs);
                 return false;
             }
             cycleCurrent += 1;
-            setPhase('inhale');
+            setPhase('inhale', nowMs, 0);
             return true;
         }
         return false;
     };
 
-    const advance = (deltaSeconds) => {
+    const advance = (nowMs) => {
         if (!running || !selected || phase === 'ready') return;
 
-        elapsed += deltaSeconds;
-        phaseElapsed += deltaSeconds;
+        elapsed = Math.max(0, ((nowMs - sessionStartMs - pausedTotalMs) / 1000) * TIMER_SPEED_FACTOR);
+        phaseElapsed = Math.max(0, ((nowMs - phaseStartMs) / 1000) * TIMER_SPEED_FACTOR);
 
         let guard = 0;
-        while (phaseDuration > 0 && phaseElapsed >= phaseDuration && running && guard < 12) {
-            const overflow = phaseElapsed - phaseDuration;
-            const canContinue = goToNextPhase();
+        while (running && guard < 12) {
+            if (phaseDuration <= 0) {
+                const canContinue = goToNextPhase(nowMs);
+                if (!canContinue || !running) return;
+                phaseElapsed = Math.max(0, ((nowMs - phaseStartMs) / 1000) * TIMER_SPEED_FACTOR);
+                guard += 1;
+                continue;
+            }
+
+            if (phaseElapsed < phaseDuration) {
+                break;
+            }
+
+            const canContinue = goToNextPhase(nowMs);
             if (!canContinue || !running) return;
-            phaseElapsed = overflow;
+            phaseElapsed = Math.max(0, ((nowMs - phaseStartMs) / 1000) * TIMER_SPEED_FACTOR);
             guard += 1;
         }
     };
 
     function onFrame(now) {
         if (!running) return;
-        const delta = clamp((now - lastFrameMs) / 1000, 0, 0.25);
-        lastFrameMs = now;
-
-        advance(delta);
+        advance(now);
         updateUi();
 
         if (running) {
@@ -401,25 +433,33 @@
         cycleTarget = getSafeCycleTarget();
         cycleCurrent = 0;
         elapsed = 0;
-        setPhase('ready');
-        setSessionState('Pret', 'ready');
+        sessionStartMs = 0;
+        phaseStartMs = 0;
+        pauseStartMs = 0;
+        pausedTotalMs = 0;
+        setPhase('ready', performance.now(), 0);
+        setSessionState('Pr\u00eat', 'ready');
         statusEl.textContent = '';
         updateUi();
     };
 
     const startSession = () => {
         if (!selected) {
-            statusEl.textContent = 'Selectionne un exercice.';
+            statusEl.textContent = 'S\u00e9lectionne un exercice.';
             return;
         }
         if (running) return;
         if (phase !== 'ready') return;
 
         closeCompletionPopup();
+        const now = performance.now();
         cycleTarget = getSafeCycleTarget();
         cycleCurrent = 1;
         elapsed = 0;
-        setPhase('inhale');
+        sessionStartMs = now;
+        pausedTotalMs = 0;
+        pauseStartMs = 0;
+        setPhase('inhale', now, 0);
         setSessionState('En cours', 'running');
         statusEl.textContent = '';
         running = true;
@@ -429,8 +469,12 @@
 
     const pauseSession = () => {
         if (!running) return;
+        const now = performance.now();
+        advance(now);
+        updateUi();
         running = false;
         stopLoop();
+        pauseStartMs = now;
         setSessionState('Pause', 'pause');
         statusEl.textContent = 'Session en pause.';
         updateUi();
@@ -438,6 +482,13 @@
 
     const resumeSession = () => {
         if (running || phase === 'ready') return;
+        const now = performance.now();
+        if (pauseStartMs > 0) {
+            const pausedMs = Math.max(0, now - pauseStartMs);
+            pausedTotalMs += pausedMs;
+            phaseStartMs += pausedMs;
+            pauseStartMs = 0;
+        }
         running = true;
         setSessionState('En cours', 'running');
         statusEl.textContent = '';
@@ -448,16 +499,31 @@
     const setFocusMode = (enabled) => {
         focusMode = enabled;
         root.classList.toggle('is-focus', enabled);
+        document.body.classList.toggle('focus-mode', enabled);
         if (focusBtn) {
             focusBtn.textContent = enabled ? 'Quitter focus' : 'Mode focus';
             focusBtn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
         }
     };
 
+    const syncResponsiveFocusMode = () => {
+        if (mobileFocusQuery.matches) {
+            if (!focusMode) {
+                setFocusMode(true);
+                focusAutoEnabledByMobile = true;
+            }
+            return;
+        }
+
+        if (focusAutoEnabledByMobile) {
+            setFocusMode(false);
+            focusAutoEnabledByMobile = false;
+        }
+    };
+
     const applySelected = (exercise) => {
         selected = exercise;
         titleEl.textContent = exercise.name;
-        patternEl.textContent = `Pattern: Inspire ${exercise.inhale}s - Bloque ${exercise.hold}s - Expire ${exercise.exhale}s`;
         resetSession();
     };
 
@@ -501,7 +567,27 @@
 
     if (focusBtn) {
         focusBtn.addEventListener('click', () => {
+            setUserMenuOpen(false);
             setFocusMode(!focusMode);
+            focusAutoEnabledByMobile = false;
+        });
+    }
+
+    if (userMenuTriggerEl) {
+        userMenuTriggerEl.addEventListener('click', (event) => {
+            event.preventDefault();
+            setUserMenuOpen(!userMenuOpen);
+        });
+    }
+
+    if (userMenuDropdownEl) {
+        userMenuDropdownEl.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                setUserMenuOpen(false);
+                if (userMenuTriggerEl) {
+                    userMenuTriggerEl.focus();
+                }
+            }
         });
     }
 
@@ -510,9 +596,30 @@
             closeCompletionPopup();
             return;
         }
+        if (event.key === 'Escape' && userMenuOpen) {
+            setUserMenuOpen(false);
+            if (userMenuTriggerEl) {
+                userMenuTriggerEl.focus();
+            }
+            return;
+        }
         if (event.key === 'Escape' && focusMode) {
             setFocusMode(false);
             if (focusBtn) focusBtn.focus();
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!userMenuOpen || !userMenuEl) return;
+        if (!userMenuEl.contains(event.target)) {
+            setUserMenuOpen(false);
+        }
+    });
+
+    document.addEventListener('focusin', (event) => {
+        if (!userMenuOpen || !userMenuEl) return;
+        if (!userMenuEl.contains(event.target)) {
+            setUserMenuOpen(false);
         }
     });
 
@@ -554,12 +661,19 @@
         statusEl.textContent = 'Aucun exercice actif disponible.';
         selected = null;
         setPhase('ready');
-        setSessionState('Pret', 'ready');
+        setSessionState('Pr\u00eat', 'ready');
         updateUi();
     }
 
     setBodyPhase('ready');
-    setSessionState('Pret', 'ready');
+    setSessionState('Pr\u00eat', 'ready');
     cycleTarget = getSafeCycleTarget();
     updateUi();
+    syncResponsiveFocusMode();
+
+    if (typeof mobileFocusQuery.addEventListener === 'function') {
+        mobileFocusQuery.addEventListener('change', syncResponsiveFocusMode);
+    } else if (typeof mobileFocusQuery.addListener === 'function') {
+        mobileFocusQuery.addListener(syncResponsiveFocusMode);
+    }
 })();

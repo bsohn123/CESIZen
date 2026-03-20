@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Respiration guidée | CESIZen{% endblock %}
+{% block title %}Respiration guid&eacute;e | CESIZen{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -20,14 +20,44 @@
     data-csrf-token="{{ csrf_token('breathing_launch') }}"
     data-is-logged-in="{{ app.user ? '1' : '0' }}"
 >
-    <nav class="topbar" aria-label="Navigation respiration">
-        <a class="topbar-brand" href="{{ path('app_home') }}">CESIZen</a>
+    {% include 'partials/_site_nav.html.twig' with { active_route: 'app_breathing_guided' } %}
+    <div class="page-toolbar">
+        <button type="button" id="focus-btn" class="btn btn-soft btn-compact">Mode focus</button>
+    </div>
+    <nav class="topbar" aria-label="Navigation respiration" hidden>
+        <div class="topbar-left">
+            <a class="topbar-brand" href="{{ path('app_home') }}">CESIZen</a>
+            <div class="topbar-nav">
+                <a class="topbar-link" href="{{ path('app_home') }}">Accueil</a>
+                <a class="topbar-link is-active" href="{{ path('app_breathing_guided') }}" aria-current="page">Respiration guid&eacute;e</a>
+                <a class="topbar-link" href="{{ app.user ? path('app_personal_tracking') : path('app_login') }}">Suivi personnel</a>
+            </div>
+        </div>
+
         <div class="topbar-actions">
-            <a class="topbar-link" href="{{ path('app_home') }}">Accueil</a>
+            <button type="button" id="focus-btn-legacy" class="btn btn-soft btn-compact">Mode focus</button>
+
             {% if app.user %}
-                <a class="topbar-link" href="{{ path('app_profile') }}">Mon profil</a>
+                <div class="user-menu">
+                    <button
+                        type="button"
+                        id="user-menu-trigger"
+                        class="user-trigger"
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                        aria-controls="user-menu-dropdown"
+                    >
+                        <span class="user-avatar">{{ app.user.userIdentifier|slice(0, 1)|upper }}</span>
+                    </button>
+
+                    <div id="user-menu-dropdown" class="user-dropdown" role="menu" aria-label="Menu utilisateur">
+                        <a class="user-item" href="{{ path('app_profile') }}" role="menuitem">Profil</a>
+                        <a class="user-item" href="{{ path('app_profile', { panel: 'edit' }) }}" role="menuitem">Param&egrave;tres</a>
+                        <a class="user-item user-item-logout" href="{{ path('app_logout') }}" role="menuitem">D&eacute;connexion</a>
+                    </div>
+                </div>
             {% else %}
-                <a class="topbar-link" href="{{ path('app_login') }}">Se connecter</a>
+                <a class="topbar-link topbar-link-cta" href="{{ path('app_login') }}">Se connecter</a>
             {% endif %}
         </div>
     </nav>
@@ -35,7 +65,7 @@
     <section class="layout">
         <article class="card exercise-list">
             <h2>Exercices disponibles</h2>
-            <p>Choisis un exercice, règle ton nombre de cycles puis lance la session.</p>
+            <p>Choisis un exercice, r&egrave;gle ton nombre de cycles puis lance la session.</p>
 
             <div class="exercise-items">
                 {% for exercise in exercises %}
@@ -60,13 +90,9 @@
         <article class="card player">
             <div class="player-head">
                 <div>
-                    <h2 id="exercise-title">Sélectionne un exercice</h2>
-                    <p class="sub" id="exercise-pattern">Pattern: -</p>
+                    <h2 id="exercise-title">S&eacute;lectionne un exercice</h2>
                 </div>
-                <div class="player-head-actions">
-                    <button type="button" id="focus-btn" class="btn btn-soft btn-compact">Mode focus</button>
-                    <span class="chip" id="session-state">Prêt</span>
-                </div>
+                <span class="chip" id="session-state">Pr&ecirc;t</span>
             </div>
 
             <div class="breath">
@@ -76,7 +102,7 @@
                         <circle id="phase-ring-progress" class="phase-ring-progress" cx="130" cy="130" r="112"></circle>
                     </svg>
                     <div class="breath-center">
-                        <p class="phase" id="phase-label">Pret</p>
+                        <p class="phase" id="phase-label">Pr&ecirc;t</p>
                         <p class="countdown" id="phase-time">0s</p>
                     </div>
                 </div>
@@ -100,7 +126,7 @@
                     <strong id="cycle-current">0 / 0</strong>
                 </div>
                 <div class="stat">
-                    <small>Durée totale</small>
+                    <small>Dur&eacute;e totale</small>
                     <strong id="total-time">0s</strong>
                 </div>
             </div>
@@ -121,9 +147,9 @@
             </div>
 
             <div class="controls">
-                <button type="button" id="start-btn" class="btn btn-primary">Démarrer</button>
+                <button type="button" id="start-btn" class="btn btn-primary">D&eacute;marrer</button>
                 <button type="button" id="pause-btn" class="btn btn-soft">Pause</button>
-                <button type="button" id="reset-btn" class="btn btn-soft">Réinitialiser</button>
+                <button type="button" id="reset-btn" class="btn btn-soft">R&eacute;initialiser</button>
             </div>
 
             <p class="status" id="session-status"></p>
@@ -135,8 +161,8 @@
 <div id="completion-popup" class="completion-popup" hidden>
     <div class="completion-popup-backdrop" data-popup-close></div>
     <div class="completion-popup-card" role="dialog" aria-modal="true" aria-labelledby="completion-popup-title" aria-describedby="completion-popup-message">
-        <h3 id="completion-popup-title">Session terminée</h3>
-        <p id="completion-popup-message">Félicitations, vous avez terminé votre exercice.</p>
+        <h3 id="completion-popup-title">Session termin&eacute;e</h3>
+        <p id="completion-popup-message">F&eacute;licitations, vous avez termin&eacute; votre exercice.</p>
         <div class="completion-popup-actions">
             <button type="button" id="completion-popup-close" class="btn btn-soft">Fermer</button>
             <button type="button" id="completion-popup-restart" class="btn btn-primary">Relancer</button>
