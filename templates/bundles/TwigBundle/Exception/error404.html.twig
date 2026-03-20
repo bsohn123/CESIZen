@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page introuvable | CESIZen{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .error-shell {
+            width: min(600px, 100%);
+            margin: 0 auto;
+            padding: 1.2rem;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .error-card {
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(214, 228, 221, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 24px 56px rgba(15, 51, 40, 0.10);
+            padding: 3rem 2.4rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .error-code {
+            font-size: clamp(4rem, 14vw, 7rem);
+            font-weight: 900;
+            color: rgba(25, 82, 65, 0.18);
+            letter-spacing: -0.04em;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .error-title {
+            margin: 0.6rem 0 0;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0f3328;
+        }
+
+        .error-text {
+            margin: 0.6rem 0 2rem;
+            color: #5f6f69;
+            font-size: 0.97rem;
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.7rem 1.4rem;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.92rem;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-home--primary {
+            background: linear-gradient(155deg, #195241, #0f3328);
+            color: #fff;
+            border: 1px solid rgba(15, 51, 40, 0.2);
+        }
+
+        .btn-home--primary:hover {
+            background: linear-gradient(155deg, #174739, #0b2920);
+        }
+
+        .btn-home--soft {
+            background: rgba(255, 255, 255, 0.7);
+            color: #0f3328;
+            border: 1px solid rgba(198, 220, 210, 0.9);
+        }
+
+        .btn-home--soft:hover {
+            background: rgba(255, 255, 255, 0.95);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="error-shell">
+        {% include 'partials/_topbar.html.twig' %}
+
+        <div class="error-card">
+            <p class="error-code">404</p>
+            <h1 class="error-title">Page introuvable</h1>
+            <p class="error-text">
+                La page que tu cherches n'existe pas ou a été déplacée.<br>
+                Pas de panique, retourne à l'accueil.
+            </p>
+            <div class="error-actions">
+                <a class="btn-home btn-home--primary" href="{{ path('app_home') }}">Retour à l'accueil</a>
+                <a class="btn-home btn-home--soft" href="{{ path('app_breathing_guided') }}">Exercices de respiration</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
