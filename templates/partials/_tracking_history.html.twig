@@ -1,0 +1,31 @@
+<section class="card">
+    <h2 class="section-title">Historique r&eacute;cent</h2>
+    <p class="section-sub">Tes derni&egrave;res sessions de respiration.</p>
+
+    {% if recent_launches is not empty %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Exercice</th>
+                        <th>Cycles</th>
+                        <th>Dur&eacute;e</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for launch in recent_launches %}
+                        <tr>
+                            <td>{{ launch.launchDate ? launch.launchDate|date('d/m/Y H:i') : 'N/A' }}</td>
+                            <td>{{ launch.breathingExercise ? launch.breathingExercise.name : 'Exercice' }}</td>
+                            <td>{{ launch.cycleCount }}</td>
+                            <td>{{ launch.totalDuration ? launch.totalDuration|date('H:i:s') : '00:00:00' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="empty">Aucune session enregistr&eacute;e pour le moment.</p>
+    {% endif %}
+</section>

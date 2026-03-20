@@ -1,0 +1,29 @@
+<section class="cta">
+    {% if app.user %}
+        <div class="cta-goal">
+            <div class="cta-goal-head">
+                <p class="cta-goal-title">Objectif du jour : 1 session de respiration</p>
+                <p class="cta-goal-meta">{{ daily_goal_done }}/{{ daily_goal_target }} réalisée</p>
+            </div>
+            <div class="cta-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ daily_goal_percent }}" aria-label="Progression de l objectif quotidien">
+                <span class="cta-progress-bar" style="width: {{ daily_goal_percent }}%;"></span>
+            </div>
+
+            <div class="milestones" aria-label="Milestones utilisateur">
+                {% for milestone in milestones %}
+                    <article class="milestone {{ milestone.unlocked ? 'is-unlocked' : 'is-locked' }}">
+                        <div class="milestone-head">
+                            <p class="milestone-title">{{ milestone.label }}</p>
+                            <span class="milestone-icon" aria-hidden="true">{{ milestone.unlocked ? '✓' : '🔒' }}</span>
+                        </div>
+                        <p class="milestone-progress">{{ milestone.progress }}/{{ milestone.target }}</p>
+                        <span class="milestone-state">{{ milestone.unlocked ? 'Débloqué' : 'Verrouillé' }}</span>
+                    </article>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <p>Prêt à te sentir plus serein des aujourd'hui ?</p>
+        <a class="btn btn-cta" href="{{ path('app_register') }}">Créer mon compte</a>
+    {% endif %}
+</section>

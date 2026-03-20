@@ -1,0 +1,37 @@
+<section class="content-grid">
+    <article class="card">
+        <h2 class="section-title">Graphique 7 jours</h2>
+        <p class="section-sub">Nombre de sessions r&eacute;alis&eacute;es chaque jour.</p>
+
+        <div class="chart" aria-label="Histogramme des sessions sur 7 jours">
+            {% for point in weekly_series %}
+                {% set height = weekly_max > 0 ? ((point.count / weekly_max) * 100)|round(0, 'floor') : 0 %}
+                <div class="bar-item">
+                    <div class="bar-track">
+                        <span class="bar-fill" style="height: {{ height }}%;"></span>
+                    </div>
+                    <span class="bar-day">{{ point.label }}</span>
+                    <span class="bar-count">{{ point.count }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="card">
+        <h2 class="section-title">Badges</h2>
+        <p class="section-sub">D&eacute;bloque-les au fil de ta pratique.</p>
+
+        <div class="badge-grid">
+            {% for milestone in milestones %}
+                <div class="badge-item {{ milestone.unlocked ? 'is-unlocked' : '' }}">
+                    <div class="badge-top">
+                        <p class="badge-title">{{ milestone.label == '1ere session' ? '1&egrave;re session' : milestone.label }}</p>
+                        <span aria-hidden="true">{{ milestone.unlocked ? '&#10003;' : '&#128274;' }}</span>
+                    </div>
+                    <p class="badge-progress">{{ milestone.progress }}/{{ milestone.target }}</p>
+                    <p class="badge-state">{{ milestone.unlocked ? 'D&eacute;bloqu&eacute;' : 'Verrouill&eacute;' }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>

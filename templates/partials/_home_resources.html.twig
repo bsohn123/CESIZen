@@ -1,0 +1,23 @@
+<section class="resources" id="resources-section">
+    <h2 class="resources-title">Ressources bien-être</h2>
+    <div class="resources-grid">
+        {% if resources is not empty %}
+            {% for page in resources %}
+                <article class="resource-card">
+                    <span class="resource-meta">
+                        {{ page.menu ? page.menu.title : 'Article' }}{% if page.createdAt %} - {{ page.createdAt|date('d/m/Y') }}{% endif %}
+                    </span>
+                    <h3>{{ page.title }}</h3>
+                    <p>{{ page.content|striptags|slice(0, 140) }}{% if page.content|striptags|length > 140 %}...{% endif %}</p>
+                    <a class="resource-link" href="{{ path('app_page_show', { slug: page.slug }) }}">Lire</a>
+                </article>
+            {% endfor %}
+        {% else %}
+            <article class="resource-card">
+                <span class="resource-meta">Article</span>
+                <h3>Bientôt des ressources bien-être</h3>
+                <p>Ajoute des pages publiees dans ton dashboard pour les afficher ici automatiquement.</p>
+            </article>
+        {% endif %}
+    </div>
+</section>
