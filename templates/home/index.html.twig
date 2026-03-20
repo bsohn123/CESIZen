@@ -9,53 +9,7 @@
 
 {% block body %}
 <main class="page-shell">
-    {% include 'partials/_site_nav.html.twig' with { active_route: 'app_home' } %}
-    <nav class="topbar" aria-label="Menu principal" hidden>
-        <a class="topbar-brand" href="{{ path('app_home') }}">CESIZen</a>
-
-        <div class="topbar-nav">
-            <a class="topbar-link is-active" href="{{ path('app_home') }}">Accueil</a>
-            <a class="topbar-link" href="{{ path('app_breathing_guided') }}">Respiration guidee</a>
-            <a class="topbar-link" href="{{ app.user ? path('app_personal_tracking') : path('app_login') }}">Suivi personnel</a>
-
-            {% for menu in menus %}
-                {% set pages = menu.pages %}
-                {% if pages|length > 0 %}
-                    <div class="menu-group">
-                        <button class="topbar-link menu-trigger" type="button" aria-haspopup="true">
-                            <span>{{ menu.title }}</span>
-                            <span class="menu-chevron">&#9662;</span>
-                        </button>
-                        <div class="menu-dropdown" role="menu" aria-label="Pages de {{ menu.title }}">
-                            {% for page in pages %}
-                                <a class="menu-page-link" href="{{ path('app_page_show', { slug: page.slug }) }}">{{ page.title }}</a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-            {% endfor %}
-
-            {% if app.user %}
-                <div class="user-menu">
-                    <button class="topbar-link user-trigger" type="button" aria-haspopup="true">
-                        <span class="user-avatar">
-                            {{ app.user.userIdentifier|default('U')|slice(0,1)|upper }}
-                        </span>
-                        <span>Compte</span>
-                        <span class="user-chevron">&#9662;</span>
-                    </button>
-
-                    <div class="user-dropdown" role="menu" aria-label="Menu compte">
-                        <a class="user-item" href="{{ path('app_profile') }}">Mon profil</a>
-                        <a class="user-item logout" href="{{ path('app_logout') }}">Déconnexion</a>
-                    </div>
-                </div>
-            {% else %}
-                <a class="topbar-link topbar-link-soft" href="{{ path('app_login') }}">Se connecter</a>
-                <a class="topbar-link topbar-link-primary" href="{{ path('app_register') }}">Créer un compte</a>
-            {% endif %}
-        </div>
-    </nav>
+    {% include 'partials/_topbar.html.twig' with { active_route: 'app_home' } %}
 
     {% include 'partials/_home_hero.html.twig' %}
     {% include 'partials/_home_features.html.twig' %}

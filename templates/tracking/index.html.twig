@@ -9,16 +9,7 @@
 
 {% block body %}
 <main class="page-shell">
-    {% include 'partials/_site_nav.html.twig' with { active_route: 'app_personal_tracking' } %}
-    <nav class="topbar" aria-label="Navigation suivi" hidden>
-        <a class="topbar-brand" href="{{ path('app_home') }}">CESIZen</a>
-        <div class="topbar-nav">
-            <a class="topbar-link" href="{{ path('app_home') }}">Accueil</a>
-            <a class="topbar-link" href="{{ path('app_breathing_guided') }}">Respiration guid&eacute;e</a>
-            <a class="topbar-link is-active" href="{{ path('app_personal_tracking') }}" aria-current="page">Suivi personnel</a>
-            <a class="topbar-link" href="{{ path('app_profile') }}">Mon profil</a>
-        </div>
-    </nav>
+    {% include 'partials/_topbar.html.twig' with { active_route: 'app_personal_tracking' } %}
 
     {% include 'partials/_tracking_kpi.html.twig' %}
     {% include 'partials/_tracking_goal.html.twig' %}

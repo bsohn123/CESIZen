@@ -16,7 +16,7 @@
     {% set panel = active_panel|default('') %}
 
     <section class="page">
-        {% include 'partials/_site_nav.html.twig' with { active_route: 'app_profile' } %}
+        {% include 'partials/_topbar.html.twig' with { active_route: 'app_profile' } %}
 
         <div class="flash-stack" aria-live="polite" aria-atomic="true">
             {% for message in app.flashes('success') %}
