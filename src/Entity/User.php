@@ -55,6 +55,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'active')]
     private bool $active = true;
 
+    #[ORM\Column(name: 'reset_token', length: 100, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(name: 'reset_token_expires_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $resetTokenExpiresAt = null;
+
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: Page::class)]
     private Collection $pages;
 
@@ -281,6 +287,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->updatedAt = $updatedAt;
 
         return $this;
+    }
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+
+        return $this;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function setResetTokenExpiresAt(?\DateTimeImmutable $resetTokenExpiresAt): static
+    {
+        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
+
+        return $this;
+    }
+
+    public function isResetTokenValid(string $token): bool
+    {
+        return $this->resetToken === $token
+            && $this->resetTokenExpiresAt !== null
+            && $this->resetTokenExpiresAt > new \DateTimeImmutable();
     }
 
     /**

@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --nature-950: #0a241c;
+    --nature-900: #0f3328;
+    --nature-800: #1a5644;
+    --nature-700: #24745c;
+
+    --text: #15251f;
+    --muted: #5b6f67;
+    --line: #d5e4dd;
+    --line-soft: rgba(198, 220, 210, 0.92);
+
+    --surface: rgba(255, 255, 255, 0.86);
+    --surface-strong: rgba(255, 255, 255, 0.94);
+
+    --shadow-soft: 0 18px 40px rgba(15, 51, 40, 0.08);
+    --shadow-medium: 0 16px 32px rgba(15, 51, 40, 0.12);
+    --shadow-strong: 0 28px 65px rgba(15, 51, 40, 0.14);
+
+    --focus-ring: #1f6a53;
+    --app-bg-image: url('/images/login-bg.jpg');
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Manrope", sans-serif;
+    color: var(--text);
+    padding: 1.1rem;
+    transition: background 0.45s ease;
+    background:
+        radial-gradient(circle at 14% 8%, rgba(36, 116, 92, 0.12), transparent 40%),
+        radial-gradient(circle at 88% 92%, rgba(15, 51, 40, 0.1), transparent 42%),
+        linear-gradient(160deg, rgba(247, 251, 249, 0.9) 0%, rgba(237, 245, 241, 0.88) 100%),
+        var(--app-bg-image) center/cover no-repeat fixed;
+}
+
+body.phase-ready {
+    background:
+        radial-gradient(circle at 14% 8%, rgba(36, 116, 92, 0.12), transparent 40%),
+        radial-gradient(circle at 88% 92%, rgba(15, 51, 40, 0.1), transparent 42%),
+        linear-gradient(160deg, rgba(247, 251, 249, 0.9) 0%, rgba(237, 245, 241, 0.88) 100%),
+        var(--app-bg-image) center/cover no-repeat fixed;
+}
+
+body.phase-inhale {
+    background:
+        radial-gradient(circle at 30% 18%, rgba(71, 167, 133, 0.22), transparent 45%),
+        radial-gradient(circle at 88% 92%, rgba(15, 51, 40, 0.1), transparent 42%),
+        linear-gradient(160deg, rgba(245, 252, 248, 0.9) 0%, rgba(235, 247, 242, 0.88) 100%),
+        var(--app-bg-image) center/cover no-repeat fixed;
+}
+
+body.phase-hold {
+    background:
+        radial-gradient(circle at 50% 10%, rgba(254, 216, 121, 0.2), transparent 44%),
+        radial-gradient(circle at 85% 85%, rgba(15, 51, 40, 0.1), transparent 42%),
+        linear-gradient(160deg, rgba(249, 251, 246, 0.9) 0%, rgba(238, 244, 236, 0.88) 100%),
+        var(--app-bg-image) center/cover no-repeat fixed;
+}
+
+body.phase-exhale {
+    background:
+        radial-gradient(circle at 22% 12%, rgba(86, 126, 184, 0.15), transparent 45%),
+        radial-gradient(circle at 84% 88%, rgba(15, 51, 40, 0.09), transparent 42%),
+        linear-gradient(160deg, rgba(245, 249, 251, 0.9) 0%, rgba(235, 241, 244, 0.88) 100%),
+        var(--app-bg-image) center/cover no-repeat fixed;
+}
+
+body.focus-mode {
+    background:
+        radial-gradient(circle at 40% 14%, rgba(92, 143, 126, 0.14), transparent 46%),
+        radial-gradient(circle at 86% 88%, rgba(15, 51, 40, 0.08), transparent 44%),
+        linear-gradient(160deg, rgba(248, 251, 250, 0.9) 0%, rgba(238, 244, 241, 0.88) 100%),
+        var(--app-bg-image) center/cover no-repeat fixed;
+}

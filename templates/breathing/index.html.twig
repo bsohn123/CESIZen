@@ -20,47 +20,10 @@
     data-csrf-token="{{ csrf_token('breathing_launch') }}"
     data-is-logged-in="{{ app.user ? '1' : '0' }}"
 >
-    {% include 'partials/_site_nav.html.twig' with { active_route: 'app_breathing_guided' } %}
+    {% include 'partials/_topbar.html.twig' with { active_route: 'app_breathing_guided' } %}
     <div class="page-toolbar">
         <button type="button" id="focus-btn" class="btn btn-soft btn-compact">Mode focus</button>
     </div>
-    <nav class="topbar" aria-label="Navigation respiration" hidden>
-        <div class="topbar-left">
-            <a class="topbar-brand" href="{{ path('app_home') }}">CESIZen</a>
-            <div class="topbar-nav">
-                <a class="topbar-link" href="{{ path('app_home') }}">Accueil</a>
-                <a class="topbar-link is-active" href="{{ path('app_breathing_guided') }}" aria-current="page">Respiration guid&eacute;e</a>
-                <a class="topbar-link" href="{{ app.user ? path('app_personal_tracking') : path('app_login') }}">Suivi personnel</a>
-            </div>
-        </div>
-
-        <div class="topbar-actions">
-            <button type="button" id="focus-btn-legacy" class="btn btn-soft btn-compact">Mode focus</button>
-
-            {% if app.user %}
-                <div class="user-menu">
-                    <button
-                        type="button"
-                        id="user-menu-trigger"
-                        class="user-trigger"
-                        aria-haspopup="menu"
-                        aria-expanded="false"
-                        aria-controls="user-menu-dropdown"
-                    >
-                        <span class="user-avatar">{{ app.user.userIdentifier|slice(0, 1)|upper }}</span>
-                    </button>
-
-                    <div id="user-menu-dropdown" class="user-dropdown" role="menu" aria-label="Menu utilisateur">
-                        <a class="user-item" href="{{ path('app_profile') }}" role="menuitem">Profil</a>
-                        <a class="user-item" href="{{ path('app_profile', { panel: 'edit' }) }}" role="menuitem">Param&egrave;tres</a>
-                        <a class="user-item user-item-logout" href="{{ path('app_logout') }}" role="menuitem">D&eacute;connexion</a>
-                    </div>
-                </div>
-            {% else %}
-                <a class="topbar-link topbar-link-cta" href="{{ path('app_login') }}">Se connecter</a>
-            {% endif %}
-        </div>
-    </nav>
 
     <section class="layout">
         <article class="card exercise-list">

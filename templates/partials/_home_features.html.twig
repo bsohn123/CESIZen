@@ -1,0 +1,17 @@
+<section class="features">
+    <h2 class="features-title">Fonctionnalites</h2>
+    <div class="features-grid">
+        <a class="feature-card feature-card-link" href="{{ path('app_breathing_guided') }}">
+            <h3>Respiration guidee</h3>
+            <p>Des exercices simples pour retrouver le calme et la concentration.</p>
+        </a>
+        <a class="feature-card feature-card-link" href="{{ app.user ? path('app_personal_tracking') : path('app_login') }}">
+            <h3>Suivi personnel</h3>
+            <p>Observe ton evolution et construis une routine durable.</p>
+        </a>
+        <a class="feature-card feature-card-link" href="{{ path('app_resources_wellbeing') }}">
+            <h3>Ressources bien-etre</h3>
+            <p>Des contenus utiles pour mieux comprendre et gerer ton stress.</p>
+        </a>
+    </div>
+</section>

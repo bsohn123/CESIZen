@@ -1,0 +1,125 @@
+.page {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 0.95rem;
+}
+
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    transition: grid-template-columns 0.35s ease, gap 0.35s ease;
+}
+
+.page-toolbar {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
+}
+
+.exercise-list {
+    padding: 1.1rem;
+    position: sticky;
+    top: 4.6rem;
+    transition: opacity .35s ease, transform .35s ease, max-height .35s ease, padding .35s ease, margin .35s ease, border-color .35s ease;
+}
+
+.page.is-focus .layout {
+    grid-template-columns: 0 minmax(0, 1fr);
+    gap: 0.8rem;
+}
+
+.page.is-focus .exercise-list {
+    opacity: 0;
+    transform: translateX(-18px);
+    pointer-events: none;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    border-color: transparent;
+}
+
+.page.is-focus .player {
+    max-width: 920px;
+    margin: 0 auto;
+}
+
+.exercise-list h2,
+.player h2 {
+    margin: 0;
+    color: var(--nature-950);
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+}
+
+.exercise-list p,
+.player .sub {
+    margin: 0.42rem 0 0;
+    color: var(--muted);
+    font-size: 0.94rem;
+    line-height: 1.45;
+}
+
+.exercise-items {
+    margin-top: 0.95rem;
+    display: grid;
+    gap: 0.62rem;
+    max-height: min(68vh, 620px);
+    overflow: auto;
+    padding-right: 0.2rem;
+}
+
+.exercise-items::-webkit-scrollbar {
+    width: 8px;
+}
+
+.exercise-items::-webkit-scrollbar-thumb {
+    background: rgba(36, 116, 92, 0.26);
+    border-radius: 99px;
+}
+
+.exercise-item {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--line-soft);
+    background: var(--surface-strong);
+    border-radius: 14px;
+    padding: 0.74rem 0.8rem;
+    cursor: pointer;
+    transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.exercise-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(35, 106, 84, 0.38);
+    box-shadow: 0 10px 22px rgba(15, 51, 40, 0.1);
+}
+
+.exercise-item.is-active {
+    border-color: rgba(35, 106, 84, 0.48);
+    background: linear-gradient(145deg, rgba(35, 106, 84, 0.14), rgba(35, 106, 84, 0.06));
+    box-shadow: inset 3px 0 0 rgba(35, 106, 84, 0.8), 0 12px 26px rgba(15, 51, 40, 0.09);
+}
+
+.exercise-item strong {
+    display: block;
+    color: var(--nature-900);
+    font-size: 0.97rem;
+}
+
+.exercise-item span {
+    display: block;
+    margin-top: 0.28rem;
+    color: #304841;
+    font-size: 0.84rem;
+}

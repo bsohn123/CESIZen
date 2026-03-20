@@ -1,0 +1,19 @@
+<section class="card">
+    <div class="goal-head">
+        <p class="goal-title">Objectif du jour</p>
+        <p class="goal-meta">{{ daily_goal_done }}/{{ daily_goal_target }} session</p>
+    </div>
+    <div class="goal-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ daily_goal_percent }}" aria-label="Progression de l objectif quotidien">
+        <span style="width: {{ daily_goal_percent }}%;"></span>
+    </div>
+    <div class="goal-actions">
+        <p class="goal-note">
+            {% if daily_goal_done >= daily_goal_target %}
+                Objectif atteint, bravo.
+            {% else %}
+                Encore {{ daily_goal_target - daily_goal_done }} session pour valider ta journ&eacute;e.
+            {% endif %}
+        </p>
+        <a class="btn btn-primary" href="{{ path('app_breathing_guided') }}">Lancer une session</a>
+    </div>
+</section>

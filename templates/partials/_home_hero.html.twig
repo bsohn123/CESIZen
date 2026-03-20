@@ -1,0 +1,19 @@
+<section class="hero-shell">
+    <div class="hero-layout">
+        <div>
+            <h1 class="hero-title">Retrouve le calme. Respire. Reprends le contrôle.</h1>
+            <p class="hero-subtitle">
+                Une application moderne et simple pour réduire ton stress et améliorer ta concentration au quotidien.
+            </p>
+            {% if not app.user %}
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="{{ path('app_register') }}">Commencer gratuitement</a>
+                    <a class="btn btn-secondary" href="{{ path('app_login') }}">Se connecter</a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="hero-brand">
+            <img src="{{ asset('images/meditation2.png') }}" alt="Logo CESIZen">
+        </div>
+    </div>
+</section>
