@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --site-nav-text: #163029;
+    --site-nav-line: rgba(205, 222, 214, 0.96);
+    --site-nav-bg: rgba(255, 255, 255, 0.84);
+    --site-nav-shadow: 0 18px 38px rgba(15, 51, 40, 0.1);
+    --site-nav-primary: #195241;
+    --site-nav-primary-dark: #0f3328;
+}
+
+body {
+    font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+}
+
+.site-shell {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 1rem;
+}
+
+.site-shell--md {
+    width: min(1040px, 100%);
+}
+
+.site-shell--sm {
+    width: min(900px, 100%);
+}
+
+.site-nav {
+    position: sticky;
+    top: 0.7rem;
+    z-index: 900;
+}
+
+.site-nav__row {
+    display: grid;
+    gap: 0.7rem;
+    padding: 0.8rem;
+    border: 1px solid var(--site-nav-line);
+    border-radius: 18px;
+    background: var(--site-nav-bg);
+    box-shadow: var(--site-nav-shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.site-nav__top {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.site-nav__brand {
+    width: fit-content;
+    text-decoration: none;
+    color: var(--site-nav-primary-dark);
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 0.01em;
+}
+
+.site-nav__actions,
+.site-nav__links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.site-nav__link,
+.site-nav__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0.62rem 0.78rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    text-decoration: none;
+    text-align: center;
+    font-size: 0.88rem;
+    font-weight: 800;
+    transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.site-nav__link {
+    color: var(--site-nav-text);
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(205, 222, 214, 0.92);
+}
+
+.site-nav__link:hover,
+.site-nav__action:hover {
+    transform: translateY(-1px);
+}
+
+.site-nav__link:hover {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(25, 82, 65, 0.24);
+}
+
+.site-nav__link.is-active {
+    color: var(--site-nav-primary-dark);
+    background: rgba(25, 82, 65, 0.12);
+    border-color: rgba(25, 82, 65, 0.25);
+}
+
+.site-nav__action--soft {
+    color: var(--site-nav-text);
+    background: rgba(255, 255, 255, 0.82);
+    border-color: rgba(205, 222, 214, 0.92);
+}
+
+.site-nav__action--primary {
+    color: #fff;
+    background: linear-gradient(155deg, var(--site-nav-primary), var(--site-nav-primary-dark));
+    border-color: rgba(15, 51, 40, 0.18);
+}
+
+.site-nav__action--primary:hover {
+    background: linear-gradient(155deg, #174739, #0f3328);
+}
+
+.site-nav__link:focus-visible,
+.site-nav__action:focus-visible {
+    outline: 2px solid var(--site-nav-primary);
+    outline-offset: 2px;
+}
+
+@media (min-width: 700px) {
+    .site-nav__top {
+        grid-template-columns: auto 1fr;
+        align-items: center;
+    }
+
+    .site-nav__actions {
+        grid-template-columns: repeat(auto-fit, minmax(140px, max-content));
+        justify-content: end;
+    }
+
+    .site-nav__links {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+
+@media (min-width: 980px) {
+    .site-nav__row {
+        padding: 0.72rem 0.82rem;
+    }
+
+    .site-nav__top {
+        grid-template-columns: auto auto;
+        justify-content: space-between;
+    }
+
+    .site-nav__links {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}

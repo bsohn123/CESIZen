@@ -7,11 +7,8 @@ use App\Entity\Launch;
 use App\Entity\Menu;
 use App\Entity\Page;
 use App\Entity\User;
-use App\Repository\BreathingExerciseRepository;
 use App\Repository\LaunchRepository;
-use App\Repository\MenuRepository;
 use App\Repository\PageRepository;
-use App\Repository\UserRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -24,28 +21,74 @@ use Symfony\Component\HttpFoundation\Response;
 class DashboardController extends AbstractDashboardController
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
         private readonly PageRepository $pageRepository,
-        private readonly MenuRepository $menuRepository,
-        private readonly BreathingExerciseRepository $breathingExerciseRepository,
         private readonly LaunchRepository $launchRepository,
     ) {
     }
 
     public function index(): Response
     {
+        $today = new \DateTimeImmutable('today');
+        $tomorrow = $today->modify('+1 day');
+        $last7Start = $today->modify('-6 days');
+
+        $sessionsToday = $this->launchRepository->countBetween($today, $tomorrow);
+        $sessionsLast7 = $this->launchRepository->countBetween($last7Start, $tomorrow);
+        $activeUsersLast7 = $this->launchRepository->countActiveUsersBetween($last7Start, $tomorrow);
+        $publishedPages = $this->pageRepository->countPublished();
+
+        $dailySeriesRaw = $this->launchRepository->findGlobalDailyCountsForLastDays(30, new \DateTimeImmutable());
+        $dailySeries = [];
+        $dailyMax = 1;
+        foreach ($dailySeriesRaw as $point) {
+            $date = $point['date'];
+            $count = $point['count'];
+            $dailyMax = max($dailyMax, $count);
+
+            $dailySeries[] = [
+                'label' => $date->format('d/m'),
+                'count' => $count,
+            ];
+        }
+
+        $topExercises = $this->launchRepository->findTopExercisesForPeriod($last7Start, $tomorrow, 5);
+        $topExercisesMax = 1;
+        foreach ($topExercises as $exercise) {
+            $topExercisesMax = max($topExercisesMax, (int) $exercise['launches']);
+        }
+
+        $draftPages = $this->pageRepository->findLatestByNormalizedStatuses(['brouillon', 'draft'], 5);
+        $archivedPages = $this->pageRepository->findLatestByNormalizedStatuses(['archivee', 'archive', 'archived'], 5);
+
         return $this->render('admin/dashboard.html.twig', [
-            'stats' => [
-                'users' => $this->userRepository->count([]),
-                'pages' => $this->pageRepository->count([]),
-                'menus' => $this->menuRepository->count([]),
-                'exercises' => $this->breathingExerciseRepository->count([]),
-                'launches' => $this->launchRepository->count([]),
+            'kpis' => [
+                'sessions_today' => $sessionsToday,
+                'sessions_last7' => $sessionsLast7,
+                'active_users_last7' => $activeUsersLast7,
+                'published_pages' => $publishedPages,
             ],
-            'quickLinks' => [
+            'charts' => [
+                'daily_series' => $dailySeries,
+                'daily_max' => $dailyMax,
+                'top_exercises' => $topExercises,
+                'top_exercises_max' => $topExercisesMax,
+            ],
+            'todo' => [
+                'draft_pages' => $draftPages,
+                'archived_pages' => $archivedPages,
+            ],
+            'quick_links' => [
                 [
                     'label' => 'Gerer les utilisateurs',
                     'url' => $this->generateUrl('admin_user_index'),
+                ],
+                [
+                    'label' => 'Gerer les pages',
+                    'url' => $this->generateUrl('admin_page_index'),
+                ],
+                [
+                    'label' => 'Gerer les exercices',
+                    'url' => $this->generateUrl('admin_breathing_exercise_index'),
                 ],
             ],
         ]);

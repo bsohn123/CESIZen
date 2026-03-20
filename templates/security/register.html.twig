@@ -32,8 +32,6 @@
             background:
                 linear-gradient(160deg, rgba(238, 247, 242, 0.86) 0%, rgba(229, 240, 234, 0.82) 100%),
                 url('{{ asset('images/login-bg.jpg') }}') center/cover no-repeat;
-            display: grid;
-            place-items: center;
             padding: clamp(1rem, 2vw, 1.5rem);
         }
 
@@ -366,8 +364,11 @@
 {% endblock %}
 
 {% block body %}
-    <section class="shell">
-        <aside class="aside">
+    <section class="site-shell">
+        {% include 'partials/_site_nav.html.twig' %}
+
+        <div class="shell">
+            <aside class="aside">
             <div class="aside-intro">
                 <div class="brand">CESIZen</div>
                 <h2 class="aside-title">Création de compte</h2>
@@ -380,10 +381,10 @@
             <div class="aside-visual">
                 <img src="{{ asset('images/meditation2.png') }}" alt="Illustration meditation">
             </div>
-        </aside>
+            </aside>
 
-        <main class="main">
-            <div class="card">
+            <main class="main">
+                <div class="card">
                 <h1 class="title">Inscription</h1>
                 <p class="subtitle">Renseigne les informations pour créer ton compte.</p>
 
@@ -515,7 +516,8 @@
                 <p class="alt-link">
                     Déjà un compte ? <a href="{{ path('app_login') }}">Se connecter</a>
                 </p>
-            </div>
-        </main>
+                </div>
+            </main>
+        </div>
     </section>
 {% endblock %}
