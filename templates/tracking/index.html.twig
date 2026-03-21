@@ -12,8 +12,10 @@
     {% include 'partials/_topbar.html.twig' with { active_route: 'app_personal_tracking' } %}
 
     {% include 'partials/_tracking_kpi.html.twig' %}
-    {% include 'partials/_tracking_goal.html.twig' %}
     {% include 'partials/_tracking_charts_badges.html.twig' %}
-    {% include 'partials/_tracking_history.html.twig' %}
+    <div class="content-grid">
+        {% include 'partials/_tracking_goal.html.twig' %}
+        {% include 'partials/_tracking_history.html.twig' %}
+    </div>
 </main>
 {% endblock %}
