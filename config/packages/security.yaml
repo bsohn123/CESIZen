@@ -38,4 +38,5 @@ security:
 
     access_control:
     - { path: ^/profile, roles: ROLE_USER }
+    - { path: ^/suivi-personnel, roles: ROLE_USER }
     - { path: ^/admin, roles: ROLE_ADMIN }

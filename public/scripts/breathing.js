@@ -1,6 +1,9 @@
-(() => {
+function initBreathingPage() {
     const root = document.getElementById('breathing-page');
     if (!root) return;
+
+    const ac = new AbortController();
+    const sig = ac.signal;
 
     const cards = Array.from(document.querySelectorAll('.exercise-item'));
     const titleEl = document.getElementById('exercise-title');
@@ -39,7 +42,6 @@
     const ringRadius = 112;
     const ringCircumference = 2 * Math.PI * ringRadius;
     const mobileFocusQuery = window.matchMedia('(max-width: 980px)');
-    // Calibration: < 1 ralentit le timer pour compenser une sensation de vitesse.
     const TIMER_SPEED_FACTOR = 0.75;
 
     const phaseLabel = {
@@ -133,7 +135,6 @@
         completionPopupEl.hidden = false;
         if (completionPopupRestartBtn) {
             completionPopupRestartBtn.focus();
-            
         } else if (completionPopupCloseBtn) {
             completionPopupCloseBtn.focus();
         }
@@ -364,7 +365,7 @@
         setSessionState('Termin\u00e9', 'done');
         statusEl.textContent = 'Session termin\u00e9e. Bon travail.';
         updateUi();
-        openCompletionPopup(`F\u00e9licitations ! Vous avez termin\u00e9 ${cycleTarget} cycle${cycleTarget > 1 ? 's' : ''} en ${Math.round(elapsed)} secondes.`);
+        openCompletionPopup(`F\u00e9licitations\u00a0! Vous avez termin\u00e9 ${cycleTarget} cycle${cycleTarget > 1 ? 's' : ''} en ${Math.round(elapsed)} secondes.`);
         saveLaunch();
     };
 
@@ -544,18 +545,18 @@
                 hold: parseInt(card.dataset.hold, 10),
                 exhale: parseInt(card.dataset.exhale, 10)
             });
-        });
+        }, { signal: sig });
     });
 
-    startBtn.addEventListener('click', startSession);
-    resetBtn.addEventListener('click', resetSession);
+    startBtn.addEventListener('click', startSession, { signal: sig });
+    resetBtn.addEventListener('click', resetSession, { signal: sig });
     pauseBtn.addEventListener('click', () => {
         if (running) {
             pauseSession();
         } else {
             resumeSession();
         }
-    });
+    }, { signal: sig });
 
     cyclesInput.addEventListener('change', () => {
         getSafeCycleTarget();
@@ -563,21 +564,21 @@
             cycleTarget = getSafeCycleTarget();
             updateUi();
         }
-    });
+    }, { signal: sig });
 
     if (focusBtn) {
         focusBtn.addEventListener('click', () => {
             setUserMenuOpen(false);
             setFocusMode(!focusMode);
             focusAutoEnabledByMobile = false;
-        });
+        }, { signal: sig });
     }
 
     if (userMenuTriggerEl) {
         userMenuTriggerEl.addEventListener('click', (event) => {
             event.preventDefault();
             setUserMenuOpen(!userMenuOpen);
-        });
+        }, { signal: sig });
     }
 
     if (userMenuDropdownEl) {
@@ -588,7 +589,7 @@
                     userMenuTriggerEl.focus();
                 }
             }
-        });
+        }, { signal: sig });
     }
 
     document.addEventListener('keydown', (event) => {
@@ -607,28 +608,28 @@
             setFocusMode(false);
             if (focusBtn) focusBtn.focus();
         }
-    });
+    }, { signal: sig });
 
     document.addEventListener('click', (event) => {
         if (!userMenuOpen || !userMenuEl) return;
         if (!userMenuEl.contains(event.target)) {
             setUserMenuOpen(false);
         }
-    });
+    }, { signal: sig });
 
     document.addEventListener('focusin', (event) => {
         if (!userMenuOpen || !userMenuEl) return;
         if (!userMenuEl.contains(event.target)) {
             setUserMenuOpen(false);
         }
-    });
+    }, { signal: sig });
 
     if (completionPopupCloseBtn) {
-        completionPopupCloseBtn.addEventListener('click', closeCompletionPopup);
+        completionPopupCloseBtn.addEventListener('click', closeCompletionPopup, { signal: sig });
     }
 
     if (completionPopupBackdrop) {
-        completionPopupBackdrop.addEventListener('click', closeCompletionPopup);
+        completionPopupBackdrop.addEventListener('click', closeCompletionPopup, { signal: sig });
     }
 
     if (completionPopupRestartBtn) {
@@ -636,7 +637,7 @@
             closeCompletionPopup();
             resetSession();
             startSession();
-        });
+        }, { signal: sig });
     }
 
     if (imageEl) {
@@ -652,9 +653,22 @@
             if (inhaleImageSrc) {
                 imageEl.src = inhaleImageSrc;
             }
-        });
+        }, { signal: sig });
     }
 
+    if (typeof mobileFocusQuery.addEventListener === 'function') {
+        mobileFocusQuery.addEventListener('change', syncResponsiveFocusMode, { signal: sig });
+    } else if (typeof mobileFocusQuery.addListener === 'function') {
+        mobileFocusQuery.addListener(syncResponsiveFocusMode);
+    }
+
+    // Cleanup RAF and all listeners when Turbo is about to cache the page
+    document.addEventListener('turbo:before-cache', () => {
+        stopLoop();
+        ac.abort();
+    }, { signal: sig });
+
+    // Auto-select first exercise
     if (cards.length > 0) {
         cards[0].click();
     } else {
@@ -670,10 +684,6 @@
     cycleTarget = getSafeCycleTarget();
     updateUi();
     syncResponsiveFocusMode();
+}
 
-    if (typeof mobileFocusQuery.addEventListener === 'function') {
-        mobileFocusQuery.addEventListener('change', syncResponsiveFocusMode);
-    } else if (typeof mobileFocusQuery.addListener === 'function') {
-        mobileFocusQuery.addListener(syncResponsiveFocusMode);
-    }
-})();
+document.addEventListener('turbo:load', initBreathingPage);

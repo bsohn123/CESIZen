@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des donn&eacute;es personnelles | CESIZen{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        :root {
+            --nature-900: #0f3328;
+            --nature-800: #195241;
+            --line: #d6e4dd;
+            --text: #1e2a26;
+            --muted: #5c6b66;
+            --surface: #f4faf7;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background:
+                linear-gradient(160deg, rgba(238,247,242,0.86) 0%, rgba(229,240,234,0.82) 100%),
+                url('{{ asset('images/login-bg.jpg') }}') center/cover no-repeat;
+            padding: 1.25rem;
+        }
+        .card { width: min(860px, 100%); background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 18px 48px rgba(16,44,35,0.12); overflow: hidden; }
+        .head { padding: 1.35rem 1.4rem; background: linear-gradient(165deg, var(--nature-900), var(--nature-800)); color: #fff; }
+        .head h1 { margin: 0; font-size: 1.35rem; font-weight: 800; }
+        .head p { margin: 0.35rem 0 0; color: rgba(255,255,255,0.86); font-size: 0.92rem; }
+        .content { padding: 1.25rem 1.35rem; background: var(--surface); display: grid; gap: 0.8rem; }
+        .section { border: 1px solid var(--line); border-radius: 12px; background: #fff; padding: 1rem 1.05rem; }
+        .section h2 { margin: 0 0 0.4rem; font-size: 1rem; color: var(--nature-900); }
+        .section p { margin: 0; color: var(--muted); line-height: 1.55; font-size: 0.93rem; }
+        .section p + p { margin-top: 0.7rem; }
+        .section ul { margin: 0.25rem 0 0; padding-left: 1.1rem; color: var(--muted); line-height: 1.55; font-size: 0.93rem; }
+        .section li + li { margin-top: 0.35rem; }
+        .info-box { border: 1px solid rgba(35,106,84,0.3); border-radius: 12px; background: rgba(35,106,84,0.07); padding: 1rem 1.05rem; }
+        .info-box p { margin: 0; color: #1a4035; line-height: 1.55; font-size: 0.93rem; }
+        .foot { padding: 0 1.35rem 1.2rem; background: var(--surface); display: flex; gap: 0.6rem; flex-wrap: wrap; }
+        .btn { border-radius: 10px; padding: 0.62rem 0.9rem; border: 1px solid transparent; font-size: 0.9rem; font-weight: 600; text-decoration: none; }
+        .btn-primary { background: var(--nature-800); border-color: var(--nature-800); color: #fff; }
+        .btn-primary:hover { background: #174739; }
+        .btn-secondary { background: #fff; border-color: #cfded6; color: #355048; }
+        .btn-secondary:hover { background: #f6fbf8; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="site-shell site-shell--sm">
+        {% include 'partials/_topbar.html.twig' %}
+
+        <div class="card">
+            <header class="head">
+                <h1>Gestion des donn&eacute;es personnelles &mdash; CESIZen</h1>
+                <p>Exercez vos droits RGPD directement depuis cette page.</p>
+            </header>
+
+            <main class="content">
+                <article class="info-box">
+                    <p>Conform&eacute;ment au R&egrave;glement G&eacute;n&eacute;ral sur la Protection des Donn&eacute;es (RGPD), vous pouvez &agrave; tout moment acc&eacute;der, modifier ou demander la suppression de vos donn&eacute;es personnelles.</p>
+                </article>
+
+                <article class="section">
+                    <h2>Acc&eacute;der &agrave; mes donn&eacute;es</h2>
+                    <p>Vous pouvez consulter et modifier vos informations personnelles directement depuis votre profil utilisateur.</p>
+                    {% if app.user %}
+                        <p><a href="{{ path('app_profile') }}">Acc&eacute;der &agrave; mon profil</a></p>
+                    {% else %}
+                        <p>Connectez-vous pour acc&eacute;der &agrave; votre profil et consulter vos donn&eacute;es.</p>
+                    {% endif %}
+                </article>
+
+                <article class="section">
+                    <h2>Modifier mes donn&eacute;es</h2>
+                    <p>Depuis votre profil, vous pouvez modifier :</p>
+                    <ul>
+                        <li>Votre pseudonyme</li>
+                        <li>Votre adresse email</li>
+                        <li>Votre photo de profil</li>
+                        <li>Votre mot de passe</li>
+                    </ul>
+                </article>
+
+                <article class="section">
+                    <h2>Demander la suppression de mes donn&eacute;es</h2>
+                    <p>Pour demander la suppression compl&egrave;te de votre compte et de toutes les donn&eacute;es associ&eacute;es, contactez l&rsquo;administrateur de l&rsquo;application.</p>
+                    <p>La suppression entra&icirc;ne la perte d&eacute;finitive de votre historique de sessions et de vos informations de profil.</p>
+                </article>
+
+                <article class="section">
+                    <h2>Donn&eacute;es collect&eacute;es</h2>
+                    <p>CESIZen collecte uniquement les donn&eacute;es n&eacute;cessaires au fonctionnement de l&rsquo;application :</p>
+                    <ul>
+                        <li>Email (identifiant de connexion)</li>
+                        <li>Pseudonyme</li>
+                        <li>Historique des sessions de respiration</li>
+                        <li>Photo de profil (facultatif)</li>
+                    </ul>
+                    <p>Aucune donn&eacute;e n&rsquo;est partag&eacute;e avec des tiers.</p>
+                </article>
+            </main>
+
+            <footer class="foot">
+                {% if app.user %}
+                    <a class="btn btn-primary" href="{{ path('app_profile') }}">Mon profil</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ path('app_login') }}">Se connecter</a>
+                {% endif %}
+                <a class="btn btn-secondary" href="{{ path('app_home') }}">Retour &agrave; l&rsquo;accueil</a>
+            </footer>
+        </div>
+    </section>
+{% endblock %}
