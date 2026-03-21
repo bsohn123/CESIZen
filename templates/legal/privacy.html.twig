@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Politique de confidentialit&eacute; | CESIZen{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        :root {
+            --nature-900: #0f3328;
+            --nature-800: #195241;
+            --line: #d6e4dd;
+            --text: #1e2a26;
+            --muted: #5c6b66;
+            --surface: #f4faf7;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background:
+                linear-gradient(160deg, rgba(238,247,242,0.86) 0%, rgba(229,240,234,0.82) 100%),
+                url('{{ asset('images/login-bg.jpg') }}') center/cover no-repeat;
+            padding: 1.25rem;
+        }
+        .card { width: min(860px, 100%); background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 18px 48px rgba(16,44,35,0.12); overflow: hidden; }
+        .head { padding: 1.35rem 1.4rem; background: linear-gradient(165deg, var(--nature-900), var(--nature-800)); color: #fff; }
+        .head h1 { margin: 0; font-size: 1.35rem; font-weight: 800; }
+        .head p { margin: 0.35rem 0 0; color: rgba(255,255,255,0.86); font-size: 0.92rem; }
+        .content { padding: 1.25rem 1.35rem; background: var(--surface); display: grid; gap: 0.8rem; }
+        .section { border: 1px solid var(--line); border-radius: 12px; background: #fff; padding: 1rem 1.05rem; }
+        .section h2 { margin: 0 0 0.4rem; font-size: 1rem; color: var(--nature-900); }
+        .section p { margin: 0; color: var(--muted); line-height: 1.55; font-size: 0.93rem; }
+        .section p + p, .section ul + p, .section p + ul { margin-top: 0.7rem; }
+        .section ul { margin: 0.25rem 0 0; padding-left: 1.1rem; color: var(--muted); line-height: 1.55; font-size: 0.93rem; }
+        .section li + li { margin-top: 0.35rem; }
+        .foot { padding: 0 1.35rem 1.2rem; background: var(--surface); display: flex; gap: 0.6rem; flex-wrap: wrap; }
+        .btn { border-radius: 10px; padding: 0.62rem 0.9rem; border: 1px solid transparent; font-size: 0.9rem; font-weight: 600; text-decoration: none; }
+        .btn-secondary { background: #fff; border-color: #cfded6; color: #355048; }
+        .btn-secondary:hover { background: #f6fbf8; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="site-shell site-shell--sm">
+        {% include 'partials/_topbar.html.twig' %}
+
+        <div class="card">
+            <header class="head">
+                <h1>Politique de confidentialit&eacute; &mdash; CESIZen</h1>
+                <p>Comment nous traitons vos donn&eacute;es personnelles.</p>
+            </header>
+
+            <main class="content">
+                <article class="section">
+                    <h2>1. Donn&eacute;es collect&eacute;es</h2>
+                    <p>Dans le cadre de l&rsquo;utilisation de CESIZen, les donn&eacute;es suivantes peuvent &ecirc;tre collect&eacute;es :</p>
+                    <ul>
+                        <li>Adresse email</li>
+                        <li>Pseudonyme</li>
+                        <li>Historique des sessions de respiration</li>
+                        <li>Photo de profil (facultatif)</li>
+                    </ul>
+                </article>
+
+                <article class="section">
+                    <h2>2. Finalit&eacute; du traitement</h2>
+                    <p>Les donn&eacute;es collect&eacute;es sont utilis&eacute;es exclusivement pour :</p>
+                    <ul>
+                        <li>La gestion de votre compte utilisateur</li>
+                        <li>L&rsquo;affichage de votre suivi personnel</li>
+                        <li>L&rsquo;authentification et la s&eacute;curit&eacute; de votre session</li>
+                    </ul>
+                    <p>Aucune donn&eacute;e n&rsquo;est vendue ni transmise &agrave; des tiers.</p>
+                </article>
+
+                <article class="section">
+                    <h2>3. Dur&eacute;e de conservation</h2>
+                    <p>Les donn&eacute;es sont conserv&eacute;es tant que votre compte est actif. En cas de suppression du compte, toutes les donn&eacute;es associ&eacute;es sont supprim&eacute;es.</p>
+                </article>
+
+                <article class="section">
+                    <h2>4. Vos droits (RGPD)</h2>
+                    <p>Conform&eacute;ment au R&egrave;glement G&eacute;n&eacute;ral sur la Protection des Donn&eacute;es, vous disposez des droits suivants :</p>
+                    <ul>
+                        <li>Droit d&rsquo;acc&egrave;s &agrave; vos donn&eacute;es</li>
+                        <li>Droit de rectification</li>
+                        <li>Droit &agrave; l&rsquo;effacement (&laquo;&nbsp;droit &agrave; l&rsquo;oubli&nbsp;&raquo;)</li>
+                        <li>Droit &agrave; la portabilit&eacute;</li>
+                        <li>Droit d&rsquo;opposition</li>
+                    </ul>
+                    <p>Pour exercer ces droits, rendez-vous sur la page <a href="{{ path('app_legal_data') }}">Gestion des donn&eacute;es personnelles</a>.</p>
+                </article>
+
+                <article class="section">
+                    <h2>5. S&eacute;curit&eacute;</h2>
+                    <p>Les mots de passe sont stock&eacute;s de fa&ccedil;on hach&eacute;e (bcrypt). L&rsquo;acc&egrave;s aux donn&eacute;es est s&eacute;curis&eacute; par authentification.</p>
+                </article>
+            </main>
+
+            <footer class="foot">
+                <a class="btn btn-secondary" href="{{ path('app_home') }}">Retour &agrave; l&rsquo;accueil</a>
+            </footer>
+        </div>
+    </section>
+{% endblock %}
