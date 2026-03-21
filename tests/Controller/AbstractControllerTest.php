@@ -2,6 +2,7 @@
 
 namespace App\Tests\Controller;
 
+use App\Entity\BreathingExercise;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -19,18 +20,29 @@ abstract class AbstractControllerTest extends WebTestCase
 
     protected function tearDown(): void
     {
-        $em = $this->getEntityManager();
-        $repo = $em->getRepository(User::class);
+        try {
+            $em = $this->getEntityManager();
+            $conn = $em->getConnection();
 
-        foreach ($this->getTestEmails() as $email) {
-            $user = $repo->findOneBy(['email' => $email]);
-            if ($user) {
-                $em->remove($user);
-            }
+            // Supprimer les launches via DQL pour éviter les problèmes de FK
+            $em->createQuery(
+                'DELETE FROM App\Entity\Launch l WHERE l.user IN (
+                    SELECT u FROM App\Entity\User u WHERE u.email IN (:emails)
+                )'
+            )->setParameter('emails', $this->getTestEmails())->execute();
+
+            // Supprimer les users de test
+            $em->createQuery(
+                'DELETE FROM App\Entity\User u WHERE u.email IN (:emails)'
+            )->setParameter('emails', $this->getTestEmails())->execute();
+
+            // Supprimer les exercices de test
+            $em->createQuery(
+                'DELETE FROM App\Entity\BreathingExercise e WHERE e.name = :name'
+            )->setParameter('name', 'Test 4-4-4')->execute();
+        } finally {
+            parent::tearDown();
         }
-        $em->flush();
-
-        parent::tearDown();
     }
 
     /**
@@ -81,5 +93,37 @@ abstract class AbstractControllerTest extends WebTestCase
     protected function loginAs(User $user): void
     {
         $this->client->loginUser($user);
+    }
+
+    protected function createBreathingExercise(
+        string $name = 'Test 4-4-4',
+        int $inhale = 4,
+        int $hold = 4,
+        int $exhale = 4,
+        bool $active = true
+    ): BreathingExercise {
+        $em = $this->getEntityManager();
+
+        $existing = $em->getRepository(BreathingExercise::class)->findOneBy(['name' => $name]);
+        if ($existing) {
+            return $existing;
+        }
+
+        $exercise = new BreathingExercise();
+        $exercise->setName($name);
+        $exercise->setInhaleDuration($inhale);
+        $exercise->setHoldDuration($hold);
+        $exercise->setExhaleDuration($exhale);
+        $exercise->setActive($active);
+
+        $em->persist($exercise);
+        $em->flush();
+
+        return $exercise;
+    }
+
+    protected function getCsrfTokenFromPage(string $selector, string $attribute = 'data-csrf-token'): string
+    {
+        return (string) $this->client->getCrawler()->filter($selector)->attr($attribute);
     }
 }
