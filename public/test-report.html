@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>Test Documentation</title>
+        <style>
+            body {
+                text-rendering: optimizeLegibility;
+                font-family: Source SansSerif Pro, Arial, sans-serif;
+                font-variant-ligatures: common-ligatures;
+                font-kerning: normal;
+                margin-left: 2rem;
+                background-color: #fff;
+                color: #000;
+            }
+
+            body > ul > li {
+                font-size: larger;
+            }
+
+            h2 {
+                font-size: larger;
+                text-decoration-line: underline;
+                text-decoration-thickness: 2px;
+                margin: 0;
+                padding: 0.5rem 0;
+            }
+
+            ul {
+                list-style: none;
+                margin: 0 0 2rem;
+                padding: 0 0 0 1rem;
+                text-indent: -1rem;
+            }
+
+            .success:before {
+                color: #4e9a06;
+                content: '✓';
+                padding-right: 0.5rem;
+            }
+
+            .defect {
+                color: #a40000;
+            }
+
+            .defect:before {
+                color: #a40000;
+                content: '✗';
+                padding-right: 0.5rem;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Access Control (App\Tests\Controller\AccessControl)</h2>
+        <ul>
+            <li class="success">Home is public</li>
+            <li class="success">Breathing page is public</li>
+            <li class="success">Resources page is public</li>
+            <li class="success">Tracking redirects anonymous to login</li>
+            <li class="success">Profile redirects anonymous to login</li>
+            <li class="success">Tracking is accessible for logged in user</li>
+            <li class="success">Profile is accessible for logged in user</li>
+            <li class="success">Admin redirects anonymous to login</li>
+            <li class="success">Admin is forbidden for role user</li>
+            <li class="defect">Admin is accessible for role admin</li>
+            <li class="defect">Admin users list is accessible for role admin</li>
+            <li class="defect">Admin exercises list is accessible for role admin</li>
+        </ul>
+        <h2>Breathing (App\Tests\Controller\Breathing)</h2>
+        <ul>
+            <li class="success">Breathing page loads</li>
+            <li class="success">Breathing page contains exercise list when exercises exist</li>
+            <li class="success">Save launch requires authentication</li>
+            <li class="success">Save launch with invalid csrf returns bad request</li>
+            <li class="success">Save launch with unknown exercise returns not found</li>
+            <li class="success">Save launch with valid data returns success</li>
+            <li class="success">Save launch with invalid json returns bad request</li>
+        </ul>
+        <h2>Misc (App\Tests\Controller\Misc)</h2>
+        <ul>
+            <li class="success">Home page loads and contains brand name</li>
+            <li class="success">Home page contains link to breathing</li>
+            <li class="success">Resources page loads and contains title</li>
+            <li class="success">Unknown route returns 404</li>
+            <li class="success">Forgot password with unknown email redirects</li>
+            <li class="success">Forgot password with known email redirects</li>
+            <li class="success">Reset password with invalid token redirects to forgot password</li>
+            <li class="success">Reset password with valid token loads page</li>
+            <li class="success">Reset password with valid token and valid data redirects to login</li>
+            <li class="success">Reset password with mismatched passwords returns 422</li>
+        </ul>
+        <h2>Profile (App\Tests\Controller\Profile)</h2>
+        <ul>
+            <li class="success">Profile page loads for authenticated user</li>
+            <li class="success">Profile page displays username</li>
+            <li class="success">Profile page displays email</li>
+            <li class="success">Edit profile with valid data redirects</li>
+            <li class="success">Edit profile with invalid csrf redirects</li>
+            <li class="success">Edit profile with empty email redirects</li>
+            <li class="success">Edit profile with duplicate email redirects</li>
+            <li class="success">Change password with valid data redirects</li>
+            <li class="success">Change password with wrong current password redirects</li>
+            <li class="success">Change password with mismatched passwords redirects</li>
+            <li class="success">Change password with short new password redirects</li>
+            <li class="success">Delete account with valid csrf redirects to login</li>
+            <li class="success">Delete account with invalid csrf redirects</li>
+        </ul>
+        <h2>Security (App\Tests\Controller\Security)</h2>
+        <ul>
+            <li class="success">Login page is accessible</li>
+            <li class="success">Register page is accessible</li>
+            <li class="success">Forgot password page is accessible</li>
+            <li class="success">Login with valid credentials redirects</li>
+            <li class="success">Login with wrong password stays on login page</li>
+            <li class="success">Login with unknown email stays on login page</li>
+            <li class="success">Login with inactive account is rejected</li>
+            <li class="success">Logout redirects</li>
+            <li class="success">Register with valid data redirects</li>
+            <li class="success">Register with existing email shows error</li>
+            <li class="success">Register with short password shows error</li>
+            <li class="success">Terms page is accessible</li>
+            <li class="success">Mentions legales page is accessible</li>
+            <li class="success">Privacy page is accessible</li>
+            <li class="success">Data page is accessible</li>
+        </ul>
+        <h2>Tracking (App\Tests\Controller\Tracking)</h2>
+        <ul>
+            <li class="success">Tracking page loads for authenticated user</li>
+            <li class="success">Tracking page contains kpi section</li>
+            <li class="success">Tracking page contains goal section</li>
+            <li class="success">Tracking page contains history section</li>
+            <li class="success">Tracking page shows empty message when no sessions</li>
+            <li class="success">Tracking page shows session in history after launch</li>
+        </ul>
+        <h2>Tracking Controller Unit (App\Tests\Unit\TrackingControllerUnit)</h2>
+        <ul>
+            <li class="success">Format duration label returns zero min for zero input</li>
+            <li class="success">Format duration label returns zero min for negative input</li>
+            <li class="success">Format duration label returns at least 1 min for short duration</li>
+            <li class="success">Format duration label returns minutes only</li>
+            <li class="success">Format duration label returns hours and minutes</li>
+            <li class="success">Format duration label returns 2 hours exact</li>
+            <li class="success">Day label returns lun for monday</li>
+            <li class="success">Day label returns dim for sunday</li>
+            <li class="success">Day label returns mer for wednesday</li>
+        </ul>
+    </body>
+</html>
