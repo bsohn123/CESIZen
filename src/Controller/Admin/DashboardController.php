@@ -2,11 +2,6 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\BreathingExercise;
-use App\Entity\Launch;
-use App\Entity\Menu;
-use App\Entity\Page;
-use App\Entity\User;
 use App\Repository\LaunchRepository;
 use App\Repository\PageRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
@@ -111,11 +106,11 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-        yield MenuItem::linkToCrud('Utilisateur', 'fas fa-user', User::class);
-        yield MenuItem::linkToCrud('Page', 'fas fa-file-alt', Page::class);
-        yield MenuItem::linkToCrud('Menu', 'fas fa-bars', Menu::class);
-        yield MenuItem::linkToCrud('Exercice de respiration', 'fas fa-heartbeat', BreathingExercise::class);
-        yield MenuItem::linkToCrud('Lancement', 'fas fa-play-circle', Launch::class);
+        yield MenuItem::linkTo(UserCrudController::class, 'Utilisateur', 'fas fa-user');
+        yield MenuItem::linkTo(PageCrudController::class, 'Page', 'fas fa-file-alt');
+        yield MenuItem::linkTo(MenuCrudController::class, 'Menu', 'fas fa-bars');
+        yield MenuItem::linkTo(BreathingExerciseCrudController::class, 'Exercice de respiration', 'fas fa-heartbeat');
+        yield MenuItem::linkTo(LaunchCrudController::class, 'Lancement', 'fas fa-play-circle');
         yield MenuItem::linkToRoute('Quitter', 'fas fa-right-from-bracket', 'app_home');
     }
 }
