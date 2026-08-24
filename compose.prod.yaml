@@ -1,0 +1,87 @@
+# Environnement de PRODUCTION — déployé sur le VPS par deploy.sh.
+#
+#   docker compose -f compose.prod.yaml up -d
+#
+# Aucun secret n'est écrit ici : les valeurs proviennent du fichier .env.prod
+# déposé sur le serveur avec des droits 600 et jamais versionné.
+
+services:
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY:-bsohn123/cesizen}:${APP_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      APP_ENV: prod
+      APP_SECRET: ${APP_SECRET:?APP_SECRET est obligatoire}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL est obligatoire}
+      MAILER_DSN: ${MAILER_DSN:?MAILER_DSN est obligatoire}
+      MAILER_FROM: ${MAILER_FROM:-noreply@cesizen.fr}
+      MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
+      SERVER_NAME: ${SERVER_NAME:-cesizen.fr}
+      TLS_EMAIL: ${TLS_EMAIL:-admin@cesizen.fr}
+      DEFAULT_URI: https://${SERVER_NAME:-cesizen.fr}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp' # HTTP/3
+    volumes:
+      - caddy_data:/data # certificats TLS : à conserver entre deux déploiements
+      - caddy_config:/config
+      - uploads:/app/public/uploads
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', 'http://localhost/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # Consommateur de la file Messenger : sans lui, aucun courriel ne part
+  # (les messages SendEmailMessage sont routés vers le transport « async »).
+  worker:
+    image: ghcr.io/${GITHUB_REPOSITORY:-bsohn123/cesizen}:${APP_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      APP_ENV: prod
+      APP_SECRET: ${APP_SECRET:?APP_SECRET est obligatoire}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL est obligatoire}
+      MAILER_DSN: ${MAILER_DSN:?MAILER_DSN est obligatoire}
+      MAILER_FROM: ${MAILER_FROM:-noreply@cesizen.fr}
+      MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
+      DEFAULT_URI: https://${SERVER_NAME:-cesizen.fr}
+      RUN_MIGRATIONS: '0' # seul le conteneur applicatif joue les migrations
+    command: ['php', 'bin/console', 'messenger:consume', 'async', '--time-limit=3600', '--memory-limit=128M']
+
+  database:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?MYSQL_DATABASE est obligatoire}
+      MYSQL_USER: ${MYSQL_USER:?MYSQL_USER est obligatoire}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD est obligatoire}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD est obligatoire}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    # Aucun port publié : la base n'est joignable que depuis le réseau interne
+    # de la composition. C'est la mesure la plus simple et la plus efficace
+    # contre l'exposition accidentelle d'une base sur Internet.
+    volumes:
+      - database_data:/var/lib/mysql:rw
+      - ./backups:/backups
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-p${MYSQL_ROOT_PASSWORD}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  database_data:
+  uploads:
+  caddy_data:
+  caddy_config:

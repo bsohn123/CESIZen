@@ -1,0 +1,15 @@
+.git
+.github
+.env.local
+.env.*.local
+var/
+vendor/
+node_modules/
+tests/
+backups/
+docs/
+*.md
+.php-cs-fixer.cache
+.phpunit.cache
+compose*.yaml
+Dockerfile
