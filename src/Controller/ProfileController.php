@@ -4,7 +4,10 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Security\ImageSanitizer;
+use App\Security\PasswordPolicy;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -117,15 +120,24 @@ final class ProfileController extends AbstractController
             return $this->redirectToRoute('app_profile');
         }
 
-        if ($photo->getSize() > 5 * 1024 * 1024) {
+        if ($photo->getSize() > ImageSanitizer::MAX_BYTES) {
             $this->addFlash('warning', 'La taille maximale autorisee est de 5 Mo.');
 
             return $this->redirectToRoute('app_profile');
         }
 
-        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!in_array($photo->getMimeType(), $allowedMimeTypes, true)) {
+        if (!in_array($photo->getMimeType(), ImageSanitizer::ALLOWED_MIME_TYPES, true)) {
             $this->addFlash('warning', 'Format invalide. Utilise JPG, PNG, GIF ou WebP.');
+
+            return $this->redirectToRoute('app_profile');
+        }
+
+        // V06 — l'image est intégralement réencodée : une charge utile dissimulée
+        // dans les métadonnées ou après les octets de l'image ne survit pas.
+        try {
+            ImageSanitizer::sanitize($photo);
+        } catch (FileException $exception) {
+            $this->addFlash('warning', $exception->getMessage());
 
             return $this->redirectToRoute('app_profile');
         }
@@ -168,14 +180,13 @@ final class ProfileController extends AbstractController
             return $this->redirectToRoute('app_profile', ['panel' => 'password']);
         }
 
-        if (strlen($newPassword) < 8) {
-            $this->addFlash('warning', 'Le nouveau mot de passe doit contenir au moins 8 caracteres.');
+        // V03 — politique de mot de passe centralisée (12 caractères, 3 classes).
+        $policyErrors = PasswordPolicy::validate($newPassword, $confirmPassword);
 
-            return $this->redirectToRoute('app_profile', ['panel' => 'password']);
-        }
-
-        if ($newPassword !== $confirmPassword) {
-            $this->addFlash('warning', 'La confirmation du mot de passe ne correspond pas.');
+        if ([] !== $policyErrors) {
+            foreach ($policyErrors as $policyError) {
+                $this->addFlash('warning', $policyError);
+            }
 
             return $this->redirectToRoute('app_profile', ['panel' => 'password']);
         }

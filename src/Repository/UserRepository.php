@@ -38,12 +38,16 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $this->findOneBy(['email' => $email]);
     }
 
-    public function findByResetToken(string $token): ?User
+    /**
+     * V04 — La colonne `reset_token` contient l'empreinte SHA-256 du jeton,
+     * jamais le jeton lui-même : l'appelant doit passer par ResetTokenHasher.
+     */
+    public function findByResetToken(string $hashedToken): ?User
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.resetToken = :token')
             ->andWhere('u.resetTokenExpiresAt > :now')
-            ->setParameter('token', $token)
+            ->setParameter('token', $hashedToken)
             ->setParameter('now', new \DateTimeImmutable())
             ->getQuery()
             ->getOneOrNullResult();
