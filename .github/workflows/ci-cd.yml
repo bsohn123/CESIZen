@@ -24,7 +24,7 @@ jobs:
     name: 1 · Qualité du code
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Installation de PHP et des outils
         uses: shivammathur/setup-php@v2
@@ -62,7 +62,7 @@ jobs:
     name: 2 · Sécurité des dépendances
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -101,7 +101,7 @@ jobs:
     env:
       DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cesizen?serverVersion=8.4.0&charset=utf8mb4'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -138,7 +138,7 @@ jobs:
     outputs:
       version: ${{ steps.meta.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: docker/setup-buildx-action@v3
 
