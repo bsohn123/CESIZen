@@ -102,6 +102,9 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3.1",
+        "friendsofphp/php-cs-fixer": "^3.90",
+        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-doctrine": "^2.0",
         "phpunit/phpunit": "^11.5.56",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",

@@ -38,3 +38,34 @@ Les écarts restent visibles dans le journal d'exécution — donc mesurables et
 décroissants — sans bloquer la livraison de correctifs de sécurité. Le risque
 est que la normalisation soit repoussée indéfiniment : elle est pour cela
 inscrite au jalon de version, pas laissée à l'intention.
+
+## Suite — normalisation effectuée (2026-08-25)
+
+Les deux tickets `type:technique` sont clos et le `continue-on-error` a été
+retiré : `php-cs-fixer` et `phpstan` sont désormais bloquants au même titre que
+les autres contrôles.
+
+- **Norme de code.** 38 fichiers sur 42 ont été normalisés par
+  `php-cs-fixer fix`. La configuration reste en `setRiskyAllowed(false)` : seules
+  des transformations sûres ont été appliquées, aucune modification de
+  comportement.
+- **Analyse statique.** Les neuf écarts de niveau 5 sont corrigés. Cinq d'entre
+  eux (`$id` « jamais assigné ») n'étaient pas des défauts du code mais une
+  méconnaissance de Doctrine par PHPStan : l'extension `phpstan/phpstan-doctrine`
+  a été ajoutée avec un `objectManagerLoader`, plutôt que de dénaturer le type
+  des identifiants. Seul `extension.neon` est inclus, pas `rules.neon`, dont les
+  règles de cartographie condamneraient l'idiome nullable de MakerBundle sur
+  l'ensemble des entités — ce serait une réécriture, pas une correction.
+- **Un défaut fonctionnel a été révélé au passage** : `SecurityController`
+  importait `TooManyLoginAttemptsAuthenticationException` depuis
+  `Security\Http\Exception` alors que la classe se trouve dans
+  `Security\Core\Exception`. La classe n'existant pas, le `instanceof` renvoyait
+  toujours `false` sans lever d'erreur : le message de limitation des tentatives
+  de connexion (V02) restait du code mort *après même* que la protection ait été
+  configurée. Corrigé.
+
+**Outillage.** `php-cs-fixer` et `phpstan` sont passés des outils flottants de
+`setup-php` à des dépendances de développement verrouillées dans
+`composer.lock`, exécutées depuis `vendor/bin`. Les postes de développement et la
+chaîne analysent avec la même version : une montée de version de l'outil ne peut
+plus rougir la chaîne sans qu'aucun code n'ait changé.

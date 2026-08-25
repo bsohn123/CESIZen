@@ -31,7 +31,7 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           extensions: pdo_mysql, intl, gd, zip
-          tools: composer:v2, php-cs-fixer, phpstan
+          tools: composer:v2
           coverage: none
 
       - name: Vérification de la syntaxe PHP
@@ -44,16 +44,15 @@ jobs:
 
       - run: composer install --no-interaction --prefer-dist --no-progress
 
-      # Ces deux contrôles deviennent bloquants une fois la base de code
-      # normalisée (voir docs/adr/0002). Ils sont pour l'instant informatifs
-      # afin de ne pas bloquer les correctifs de sécurité en cours de livraison.
+      # Bloquants depuis la normalisation de la base de code (voir docs/adr/0002).
+      # Les deux outils sont verrouillés dans composer.lock et exécutés depuis
+      # vendor/bin : la CI et les postes de développement analysent avec la même
+      # version, une montée de version ne peut plus rougir la chaîne par surprise.
       - name: Norme PSR-12 (php-cs-fixer)
-        continue-on-error: true
-        run: php-cs-fixer check --diff --config=.php-cs-fixer.dist.php
+        run: vendor/bin/php-cs-fixer check --diff --config=.php-cs-fixer.dist.php
 
       - name: Analyse statique (PHPStan)
-        continue-on-error: true
-        run: phpstan analyse --configuration=phpstan.dist.neon --no-progress
+        run: vendor/bin/phpstan analyse --configuration=phpstan.dist.neon --no-progress
 
   # ---------------------------------------------------------------------------
   # 2. Sécurité — vulnérabilités connues des dépendances (V08)
