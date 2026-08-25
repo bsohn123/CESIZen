@@ -1,0 +1,32 @@
+# Normalisation des fins de ligne.
+#
+# Sans ce fichier, un poste Windows configuré en core.autocrlf=true recopie les
+# scripts shell en CRLF dans la copie de travail. Le noyau Linux lit alors le
+# shebang « #!/bin/sh\r », ne trouve pas d'interpréteur de ce nom et rejette le
+# script avec un « no such file or directory » trompeur — le fichier existe
+# pourtant. La chaîne d'intégration, qui s'exécute sous Linux, ne voit rien :
+# seules les constructions d'image locales échouent, ce qui rend le défaut
+# d'autant plus difficile à diagnostiquer.
+
+* text=auto
+
+# Fichiers interprétés dans un conteneur Linux : toujours en LF.
+*.sh                 text eol=lf
+docker/entrypoint.sh text eol=lf
+docker/Caddyfile     text eol=lf
+Dockerfile           text eol=lf
+*.yml                text eol=lf
+*.yaml               text eol=lf
+bin/console          text eol=lf
+
+# Scripts PowerShell : destinés à Windows, conservés en CRLF.
+*.ps1                text eol=crlf
+
+# Fichiers binaires : aucune conversion.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
