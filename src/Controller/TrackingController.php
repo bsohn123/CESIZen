@@ -90,10 +90,10 @@ final class TrackingController extends AbstractController
         $minutes = intdiv($totalSeconds % 3600, 60);
 
         if ($hours > 0) {
-            return $hours . ' h ' . $minutes . ' min';
+            return $hours.' h '.$minutes.' min';
         }
 
-        return max(1, $minutes) . ' min';
+        return max(1, $minutes).' min';
     }
 
     private static function dayLabel(\DateTimeImmutable $date): string

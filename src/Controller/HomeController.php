@@ -16,9 +16,8 @@ final class HomeController extends AbstractController
     public function index(
         MenuRepository $menuRepository,
         PageRepository $pageRepository,
-        LaunchRepository $launchRepository
-    ): Response
-    {
+        LaunchRepository $launchRepository,
+    ): Response {
         $dailyGoalTarget = 1;
         $dailyGoalDone = 0;
         $streakDays = 0;

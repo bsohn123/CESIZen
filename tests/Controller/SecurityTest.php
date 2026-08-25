@@ -3,7 +3,7 @@
 namespace App\Tests\Controller;
 
 /**
- * Tests fonctionnels — Authentification
+ * Tests fonctionnels — Authentification.
  *
  * Couvre : login, logout, inscription, mot de passe oublié,
  *          connexion avec compte inactif, credentials invalides.

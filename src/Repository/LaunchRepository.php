@@ -70,7 +70,7 @@ class LaunchRepository extends ServiceEntityRepository
         $streak = 0;
 
         while (isset($activeDays[$cursor->format('Y-m-d')])) {
-            $streak++;
+            ++$streak;
             $cursor = $cursor->modify('-1 day');
         }
 
@@ -84,7 +84,7 @@ class LaunchRepository extends ServiceEntityRepository
     {
         $days = max(1, $days);
         $todayStart = $day->setTime(0, 0, 0);
-        $start = $todayStart->modify('-' . ($days - 1) . ' days');
+        $start = $todayStart->modify('-'.($days - 1).' days');
         $end = $todayStart->modify('+1 day');
 
         $rows = $this->createQueryBuilder('l')
@@ -108,8 +108,8 @@ class LaunchRepository extends ServiceEntityRepository
         }
 
         $series = [];
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $date = $todayStart->modify('-' . $i . ' days');
+        for ($i = $days - 1; $i >= 0; --$i) {
+            $date = $todayStart->modify('-'.$i.' days');
             $key = $date->format('Y-m-d');
             $series[] = [
                 'date' => $date,
@@ -191,7 +191,7 @@ class LaunchRepository extends ServiceEntityRepository
     {
         $days = max(1, $days);
         $todayStart = $day->setTime(0, 0, 0);
-        $start = $todayStart->modify('-' . ($days - 1) . ' days');
+        $start = $todayStart->modify('-'.($days - 1).' days');
         $end = $todayStart->modify('+1 day');
 
         $rows = $this->createQueryBuilder('l')
@@ -213,8 +213,8 @@ class LaunchRepository extends ServiceEntityRepository
         }
 
         $series = [];
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $date = $todayStart->modify('-' . $i . ' days');
+        for ($i = $days - 1; $i >= 0; --$i) {
+            $date = $todayStart->modify('-'.$i.' days');
             $key = $date->format('Y-m-d');
             $series[] = [
                 'date' => $date,
@@ -231,7 +231,7 @@ class LaunchRepository extends ServiceEntityRepository
     public function findTopExercisesForPeriod(
         \DateTimeImmutable $start,
         \DateTimeImmutable $end,
-        int $limit = 5
+        int $limit = 5,
     ): array {
         $rows = $this->createQueryBuilder('l')
             ->select('e.name AS name, COUNT(l.id) AS launches')
@@ -251,7 +251,7 @@ class LaunchRepository extends ServiceEntityRepository
                 'name' => (string) ($row['name'] ?? 'Exercice'),
                 'launches' => (int) ($row['launches'] ?? 0),
             ],
-            $rows
+            $rows,
         );
     }
 }

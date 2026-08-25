@@ -67,7 +67,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Launch::class, orphanRemoval: true)]
     private Collection $launches;
 
-
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();

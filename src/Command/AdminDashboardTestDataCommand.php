@@ -32,7 +32,7 @@ class AdminDashboardTestDataCommand extends Command
             'cleanup',
             null,
             InputOption::VALUE_NONE,
-            'Delete test data instead of seeding it.'
+            'Delete test data instead of seeding it.',
         );
     }
 
@@ -64,7 +64,7 @@ class AdminDashboardTestDataCommand extends Command
                 (string) $counts['marker_pages'],
                 (string) $counts['marker_exercises'],
                 (string) $counts['marker_launches'],
-            ]]
+            ]],
         );
 
         if ($cleanupOnly) {
@@ -88,27 +88,27 @@ class AdminDashboardTestDataCommand extends Command
     {
         $this->connection->executeStatement(
             'DELETE FROM `launch` WHERE launch_date >= :boundary',
-            ['boundary' => self::DATE_BOUNDARY]
+            ['boundary' => self::DATE_BOUNDARY],
         );
 
         $this->connection->executeStatement(
             'DELETE FROM `page` WHERE slug LIKE :slugPattern',
-            ['slugPattern' => 'dash-test-%']
+            ['slugPattern' => 'dash-test-%'],
         );
 
         $this->connection->executeStatement(
             'DELETE FROM `menu` WHERE title LIKE :marker',
-            ['marker' => self::MARKER.'%']
+            ['marker' => self::MARKER.'%'],
         );
 
         $this->connection->executeStatement(
             'DELETE FROM breathing_exercise WHERE name LIKE :marker',
-            ['marker' => self::MARKER.'%']
+            ['marker' => self::MARKER.'%'],
         );
 
         $this->connection->executeStatement(
             'DELETE FROM `user` WHERE email LIKE :emailPattern',
-            ['emailPattern' => 'dashboard.test.%@example.com']
+            ['emailPattern' => 'dashboard.test.%@example.com'],
         );
     }
 
@@ -130,7 +130,7 @@ class AdminDashboardTestDataCommand extends Command
                     'password' => password_hash('test1234', PASSWORD_BCRYPT),
                     'roles' => json_encode($roles, JSON_THROW_ON_ERROR),
                     'active' => $active,
-                ]
+                ],
             );
         }
 
@@ -147,7 +147,7 @@ class AdminDashboardTestDataCommand extends Command
                     'title' => $title,
                     'displayOrder' => $displayOrder,
                     'active' => $active,
-                ]
+                ],
             );
         }
 
@@ -174,7 +174,7 @@ class AdminDashboardTestDataCommand extends Command
                     'status' => $status,
                     'authorId' => $authorId,
                     'menuId' => $menuId,
-                ]
+                ],
             );
         }
 
@@ -193,7 +193,7 @@ class AdminDashboardTestDataCommand extends Command
                     'hold' => $hold,
                     'exhale' => $exhale,
                     'active' => $active,
-                ]
+                ],
             );
         }
 
@@ -219,7 +219,7 @@ class AdminDashboardTestDataCommand extends Command
                     'launchDate' => $launchDate,
                     'cycleCount' => $cycleCount,
                     'totalDuration' => $totalDuration,
-                ]
+                ],
             );
         }
     }
@@ -228,7 +228,7 @@ class AdminDashboardTestDataCommand extends Command
     {
         $id = $this->connection->fetchOne(
             'SELECT id_users FROM `user` WHERE email = :email LIMIT 1',
-            ['email' => $email]
+            ['email' => $email],
         );
 
         if ($id === false) {
@@ -242,7 +242,7 @@ class AdminDashboardTestDataCommand extends Command
     {
         $id = $this->connection->fetchOne(
             'SELECT id_menu FROM `menu` WHERE title = :title LIMIT 1',
-            ['title' => $title]
+            ['title' => $title],
         );
 
         if ($id === false) {
@@ -256,7 +256,7 @@ class AdminDashboardTestDataCommand extends Command
     {
         $id = $this->connection->fetchOne(
             'SELECT id_exercise FROM breathing_exercise WHERE name = :name LIMIT 1',
-            ['name' => $name]
+            ['name' => $name],
         );
 
         if ($id === false) {
@@ -289,7 +289,7 @@ class AdminDashboardTestDataCommand extends Command
                 'slugPattern' => 'dash-test-%',
                 'emailPattern' => 'dashboard.test.%@example.com',
                 'boundary' => self::DATE_BOUNDARY,
-            ]
+            ],
         );
 
         if ($counts === false) {

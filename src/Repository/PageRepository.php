@@ -67,7 +67,7 @@ class PageRepository extends ServiceEntityRepository
         if ($needle !== '') {
             $needle = strtolower($needle);
             $qb->andWhere('LOWER(p.title) LIKE :q OR LOWER(p.content) LIKE :q')
-                ->setParameter('q', '%' . $needle . '%');
+                ->setParameter('q', '%'.$needle.'%');
         }
 
         return $qb->getQuery()->getResult();
@@ -87,6 +87,7 @@ class PageRepository extends ServiceEntityRepository
 
     /**
      * @param string[] $statuses
+     *
      * @return Page[]
      */
     public function findLatestByNormalizedStatuses(array $statuses, int $limit = 5): array
