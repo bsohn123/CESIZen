@@ -30,3 +30,13 @@
 # Caches des outils de qualité.
 /.php-cs-fixer.cache
 ###< projet — exploitation et sécurité ###
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.php
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
+
+###> outillage front ###
+# Dépendances npm : reconstruites par `npm ci`, jamais versionnées.
+/node_modules/
+###< outillage front ###
