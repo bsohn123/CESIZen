@@ -24,7 +24,7 @@ jobs:
     name: 1 · Qualité du code
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Installation de PHP et des outils
         uses: shivammathur/setup-php@v2
@@ -37,7 +37,7 @@ jobs:
       - name: Vérification de la syntaxe PHP
         run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
@@ -61,7 +61,7 @@ jobs:
     name: 2 · Sécurité des dépendances
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -73,8 +73,29 @@ jobs:
       - run: composer install --no-interaction --prefer-dist --no-progress
 
       # Échoue si une dépendance est concernée par un avis de sécurité publié.
+      #
+      # Trois tentatives, mais uniquement en cas d'erreur de transport : le
+      # 25/08/2026, l'API des avis de packagist.org a renvoyé un 502 et la chaîne
+      # est passée au rouge alors qu'aucune dépendance n'était en cause. Un code
+      # de retour autre que 100 signale de vrais avis : on echoue immediatement,
+      # sans jamais retenter — le garde-fou doit rester intransigeant.
       - name: Audit des dépendances
-        run: composer audit --no-interaction
+        shell: bash
+        run: |
+          tentative=1
+          while [ "$tentative" -le 3 ]; do
+            composer audit --no-interaction && exit 0
+            code=$?
+            if [ "$code" -ne 100 ]; then
+              echo "::error::composer audit signale des avis de sécurité (code $code)."
+              exit "$code"
+            fi
+            echo "::warning::packagist.org injoignable (tentative $tentative/3), nouvel essai dans 15 s."
+            sleep 15
+            tentative=$((tentative + 1))
+          done
+          echo "::error::packagist.org reste injoignable après 3 tentatives."
+          exit 100
 
   # ---------------------------------------------------------------------------
   # 3. Tests — suite fonctionnelle sur une vraie base MySQL
@@ -100,7 +121,7 @@ jobs:
     env:
       DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cesizen?serverVersion=8.4.0&charset=utf8mb4'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -108,7 +129,7 @@ jobs:
           extensions: pdo_mysql, intl, gd, zip
           coverage: none
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
@@ -137,19 +158,19 @@ jobs:
     outputs:
       version: ${{ steps.meta.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Authentification au registre GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -157,7 +178,7 @@ jobs:
             type=semver,pattern={{version}}
             type=sha,format=short
 
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -209,6 +230,6 @@ jobs:
           script: /opt/cesizen/deploy.sh ${{ github.ref_name }}
 
       - name: Publication de la note de version
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true

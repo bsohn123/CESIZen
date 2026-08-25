@@ -10,6 +10,15 @@
 
 * text=auto
 
+# Code PHP : PSR-12 impose le LF. Sans cette regle, git recopie les fichiers
+# en CRLF sur un poste Windows et php-cs-fixer signale alors les 42 fichiers
+# comme non conformes, alors que la chaine — qui s'execute sous Linux — les
+# voit parfaitement conformes. L'outil devient inutilisable en local.
+*.php           text eol=lf
+*.twig          text eol=lf
+*.neon          text eol=lf
+*.dist          text eol=lf
+
 # Fichiers interprétés dans un conteneur Linux : toujours en LF.
 *.sh                 text eol=lf
 docker/entrypoint.sh text eol=lf
