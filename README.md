@@ -37,6 +37,28 @@ symfony server:start              # ou : php -S localhost:8000 -t public
 - Administration : <http://localhost:8000/admin>
 - Courriels capturés (Mailpit) : <http://localhost:8025>
 
+### Poste Windows partagé avec XAMPP
+
+Si le poste héberge déjà un MySQL XAMPP servant d'autres projets, publier la
+base du projet sur le port 3306 provoquerait un conflit. Elle est alors exposée
+sur **3307**, XAMPP restant intact :
+
+```powershell
+docker run -d --name cesizen-mysql84 --restart unless-stopped ``
+  -p 127.0.0.1:3307:3306 ``
+  -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=projet_solo ``
+  -e MYSQL_USER=cesizen -e MYSQL_PASSWORD=cesizen ``
+  -v cesizen_mysql84_data:/var/lib/mysql ``
+  mysql:8.4 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+```
+
+Reportez alors le port 3307 dans le `DATABASE_URL` de `.env.local` **et** de
+`.env.test.local`. Le moteur reste MySQL 8.4, identique à la chaîne
+d'intégration et à la production.
+
+Une fois le conteneur créé, `.\scripts\dev.ps1` démarre la base puis le serveur
+en une commande.
+
 ## Tests
 
 ```bash
