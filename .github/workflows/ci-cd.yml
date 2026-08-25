@@ -37,7 +37,7 @@ jobs:
       - name: Vérification de la syntaxe PHP
         run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
@@ -109,7 +109,7 @@ jobs:
           extensions: pdo_mysql, intl, gd, zip
           coverage: none
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
