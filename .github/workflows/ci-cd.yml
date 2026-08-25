@@ -1,0 +1,215 @@
+name: CI/CD CESIZen
+
+# Déclencheurs : toute pull request est contrôlée, develop part en recette,
+# une étiquette v*.*.* déclenche la mise en production après validation manuelle.
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  PHP_VERSION: '8.3'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Qualité — norme de code et analyse statique
+  # ---------------------------------------------------------------------------
+  qualite:
+    name: 1 · Qualité du code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installation de PHP et des outils
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_mysql, intl, gd, zip
+          tools: composer:v2, php-cs-fixer, phpstan
+          coverage: none
+
+      - name: Vérification de la syntaxe PHP
+        run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      # Ces deux contrôles deviennent bloquants une fois la base de code
+      # normalisée (voir docs/adr/0002). Ils sont pour l'instant informatifs
+      # afin de ne pas bloquer les correctifs de sécurité en cours de livraison.
+      - name: Norme PSR-12 (php-cs-fixer)
+        continue-on-error: true
+        run: php-cs-fixer check --diff --config=.php-cs-fixer.dist.php
+
+      - name: Analyse statique (PHPStan)
+        continue-on-error: true
+        run: phpstan analyse --configuration=phpstan.dist.neon --no-progress
+
+  # ---------------------------------------------------------------------------
+  # 2. Sécurité — vulnérabilités connues des dépendances (V08)
+  # ---------------------------------------------------------------------------
+  securite:
+    name: 2 · Sécurité des dépendances
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_mysql, intl, gd, zip
+          tools: composer:v2
+          coverage: none
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      # Échoue si une dépendance est concernée par un avis de sécurité publié.
+      - name: Audit des dépendances
+        run: composer audit --no-interaction
+
+  # ---------------------------------------------------------------------------
+  # 3. Tests — suite fonctionnelle sur une vraie base MySQL
+  # ---------------------------------------------------------------------------
+  tests:
+    name: 3 · Tests fonctionnels
+    runs-on: ubuntu-latest
+    needs: [qualite, securite]
+    services:
+      database:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: cesizen_test
+          MYSQL_USER: app
+          MYSQL_PASSWORD: app
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cesizen?serverVersion=8.4.0&charset=utf8mb4'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_mysql, intl, gd, zip
+          coverage: none
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Préparation de la base de test
+        run: |
+          php bin/console doctrine:database:create --if-not-exists --env=test
+          php bin/console doctrine:migrations:migrate --no-interaction --env=test
+
+      - name: Ressources front-end
+        run: php bin/console importmap:install
+
+      - name: Suite de tests
+        run: php bin/phpunit
+
+  # ---------------------------------------------------------------------------
+  # 4. Construction — image applicative unique, réutilisée en recette et en prod
+  # ---------------------------------------------------------------------------
+  build:
+    name: 4 · Construction de l'image
+    runs-on: ubuntu-latest
+    needs: tests
+    if: github.event_name == 'push'
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Authentification au registre GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,format=short
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  # 5. Recette — déploiement automatique à chaque fusion sur develop
+  # ---------------------------------------------------------------------------
+  recette:
+    name: 5 · Déploiement en recette
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: recette
+      url: https://recette.cesizen.fr
+    steps:
+      - name: Déploiement sur l'environnement de recette
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.RECETTE_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: /opt/cesizen-recette/deploy.sh develop
+
+  # ---------------------------------------------------------------------------
+  # 6. Production — étiquette v* + validation manuelle dans GitHub
+  # ---------------------------------------------------------------------------
+  production:
+    name: 6 · Déploiement en production
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    # L'environnement « production » est protégé dans les réglages du dépôt :
+    # un examinateur doit approuver le déploiement avant son exécution.
+    environment:
+      name: production
+      url: https://cesizen.fr
+    steps:
+      - name: Déploiement sur le VPS de production
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: /opt/cesizen/deploy.sh ${{ github.ref_name }}
+
+      - name: Publication de la note de version
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true

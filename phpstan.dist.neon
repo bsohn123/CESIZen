@@ -1,0 +1,11 @@
+# Analyse statique du code applicatif.
+# Le niveau est relevé progressivement : chaque montée de niveau fait l'objet
+# d'un ticket type:technique, plutôt qu'une dette figée dans un fichier
+# d'exclusions que plus personne ne relit.
+parameters:
+    level: 5
+    paths:
+        - src
+    excludePaths:
+        - src/Kernel.php
+    treatPhpDocTypesAsCertain: false

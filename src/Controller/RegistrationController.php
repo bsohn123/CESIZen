@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Security\PasswordPolicy;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,13 +50,8 @@ class RegistrationController extends AbstractController
                 $errors[] = 'Le pseudo doit contenir au moins 3 caractères.';
             }
 
-            if (strlen($password) < 8) {
-                $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
-            }
-
-            if ($password !== $passwordConfirm) {
-                $errors[] = 'La confirmation du mot de passe ne correspond pas.';
-            }
+            // V03 — politique de mot de passe centralisée (12 caractères, 3 classes).
+            $errors = [...$errors, ...PasswordPolicy::validate($password, $passwordConfirm)];
 
             if (!$acceptTerms) {
                 $errors[] = "Tu dois accepter les conditions d'utilisation.";

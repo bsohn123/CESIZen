@@ -1,0 +1,57 @@
+# Configuration du serveur web de production (FrankenPHP = Caddy + PHP).
+#
+# V05 — cette configuration publie les en-têtes de sécurité HTTP qui étaient
+# entièrement absents de l'application auditée.
+
+{
+	{$CADDY_GLOBAL_OPTIONS}
+	frankenphp
+	# Adresse utilisée par Let's Encrypt pour prévenir d'une expiration.
+	email {$TLS_EMAIL:admin@cesizen.fr}
+}
+
+{$SERVER_NAME:localhost} {
+	root /app/public
+	encode zstd br gzip
+
+	# ---------------------------------------------------------------------
+	# V05 — en-têtes de sécurité
+	# ---------------------------------------------------------------------
+	header {
+		# Force HTTPS pendant un an, sous-domaines compris.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# Politique de sécurité du contenu : tout provient du même domaine.
+		# 'unsafe-inline' sur les styles reste nécessaire tant que les gabarits
+		# Twig contiennent des attributs style="" (dette suivie en ticket).
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'"
+		# Empêche le navigateur de deviner un type MIME (protège des polyglottes).
+		X-Content-Type-Options "nosniff"
+		# Interdit l'inclusion du site dans une iframe (clickjacking).
+		X-Frame-Options "DENY"
+		# Ne divulgue pas l'URL complète aux sites tiers.
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Coupe les API navigateur non utilisées par l'application.
+		Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=()"
+		# Ne pas annoncer le serveur ni sa version.
+		-Server
+		-X-Powered-By
+	}
+
+	# Les fichiers téléversés ne sont jamais interprétés : seuls les fichiers
+	# statiques sont servis depuis /uploads, et le PHP n'est exécuté que par
+	# public/index.php via le routeur ci-dessous (V06, défense en profondeur).
+	@uploads path /uploads/*
+	header @uploads {
+		Content-Disposition "inline"
+		X-Content-Type-Options "nosniff"
+		Cache-Control "public, max-age=86400"
+	}
+
+	# La sonde de santé ne doit pas polluer le journal d'accès.
+	@health path /health
+	log_skip @health
+
+	php_server {
+		index index.php
+	}
+}

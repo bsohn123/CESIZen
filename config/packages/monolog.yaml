@@ -1,6 +1,7 @@
 monolog:
     channels:
         - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
+        - security # V09 — canal dédié aux événements d'authentification et d'accès
 
 when@dev:
     monolog:
@@ -9,7 +10,12 @@ when@dev:
                 type: stream
                 path: "%kernel.logs_dir%/%kernel.environment%.log"
                 level: debug
-                channels: ["!event"]
+                channels: ["!event", "!security"]
+            security:
+                type: stream
+                path: "%kernel.logs_dir%/security.log"
+                level: info
+                channels: [security]
             console:
                 type: console
                 process_psr_3_messages: false
@@ -32,12 +38,22 @@ when@test:
 when@prod:
     monolog:
         handlers:
+            # V09 — les événements de sécurité sont journalisés systématiquement,
+            # sans passer par le tampon « fingers_crossed » qui ne libère les
+            # messages qu'en cas d'erreur : un échec d'authentification n'est pas
+            # une erreur applicative, mais doit être tracé.
+            security:
+                type: stream
+                path: php://stderr
+                level: info
+                channels: [security]
+                formatter: monolog.formatter.json
             main:
                 type: fingers_crossed
                 action_level: error
                 handler: nested
                 excluded_http_codes: [404, 405]
-                channels: ["!deprecation"]
+                channels: ["!deprecation", "!security"]
                 buffer_size: 50 # How many messages should be saved? Prevent memory leaks
             nested:
                 type: stream

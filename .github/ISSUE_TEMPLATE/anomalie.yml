@@ -1,0 +1,103 @@
+name: Déclarer une anomalie
+description: Signaler un dysfonctionnement de CESIZen
+title: '[Anomalie] '
+labels: ['type:anomalie', 'statut:nouveau']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de prendre le temps de décrire l'anomalie.
+        Un ticket reproductible est corrigé bien plus vite qu'un ticket approximatif.
+
+        **Faille de sécurité ?** Ne la décrivez pas ici : ce ticket est public.
+        Passez par un avis de sécurité privé (voir `SECURITY.md`).
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: "Indiquée en pied de page de l'application (exemple : v1.2.0)"
+      placeholder: v1.2.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environnement
+    attributes:
+      label: Environnement
+      options:
+        - Production (cesizen.fr)
+        - Recette (recette.cesizen.fr)
+        - Développement local
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module concerné
+      options:
+        - Comptes utilisateurs
+        - Pages d'information
+        - Exercices de respiration
+        - Suivi personnel
+        - Administration
+        - Je ne sais pas
+    validations:
+      required: true
+
+  - type: dropdown
+    id: criticite
+    attributes:
+      label: Impact constaté
+      description: "La criticité définitive est arbitrée à la qualification du ticket."
+      options:
+        - "P1 — service indisponible, données exposées ou perdues"
+        - "P2 — fonctionnalité majeure inutilisable, sans contournement"
+        - "P3 — gêne ponctuelle, contournement possible"
+        - "P4 — défaut visuel ou de libellé"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Étapes de reproduction
+      description: "Une action par ligne, du premier clic jusqu'à l'erreur."
+      placeholder: |
+        1. Se connecter avec un compte utilisateur
+        2. Ouvrir « Suivi personnel »
+        3. Cliquer sur « Semaine »
+    validations:
+      required: true
+
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Résultat attendu
+    validations:
+      required: true
+
+  - type: textarea
+    id: obtenu
+    attributes:
+      label: Résultat obtenu
+      description: "Message d'erreur exact si affiché, et capture d'écran si possible."
+    validations:
+      required: true
+
+  - type: input
+    id: contexte
+    attributes:
+      label: Navigateur et système
+      placeholder: Firefox 129 / Windows 11
+
+  - type: checkboxes
+    id: verifications
+    attributes:
+      label: Avant d'envoyer
+      options:
+        - label: J'ai vérifié qu'un ticket ouvert ne décrit pas déjà cette anomalie.
+          required: true
+        - label: Ce ticket ne contient aucun mot de passe ni donnée personnelle d'un autre utilisateur.
+          required: true

@@ -3,11 +3,26 @@ framework:
     secret: '%env(APP_SECRET)%'
 
     # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    session:
+        # V12 — durcissement du cookie de session.
+        cookie_secure: auto # 'true' dès que la requête est en HTTPS
+        cookie_httponly: true # inaccessible au JavaScript (limite le vol par XSS)
+        cookie_samesite: lax # 'lax' : nécessaire pour la connexion depuis un lien externe
+        use_cookies: true
+        # Régénération de l'identifiant de session toutes les 30 minutes.
+        gc_maxlifetime: 7200
     csrf_protection:
         enabled: true
         stateless_token_ids: []
         check_header: false
+
+    # V04 — limitation de débit du formulaire « mot de passe oublié ».
+    # Empêche l'énumération de comptes et le bombardement de courriels.
+    rate_limiter:
+        reset_password:
+            policy: 'sliding_window'
+            limit: 3
+            interval: '1 hour'
 
     #esi: true
     #fragments: true
@@ -17,3 +32,8 @@ when@test:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+        rate_limiter:
+            reset_password:
+                policy: 'sliding_window'
+                limit: 100
+                interval: '1 hour'

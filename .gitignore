@@ -18,3 +18,15 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+###> projet — exploitation et sécurité ###
+# V01 — jamais de secret dans le dépôt.
+/.env.prod
+/.env.recette
+# Sauvegardes de base de données (données personnelles réelles).
+/backups/
+# Fichiers téléversés par les utilisateurs (photos de profil).
+/public/uploads/
+# Caches des outils de qualité.
+/.php-cs-fixer.cache
+###< projet — exploitation et sécurité ###

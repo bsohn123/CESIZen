@@ -1,0 +1,75 @@
+name: Demander une évolution
+description: Proposer une nouvelle fonctionnalité ou une amélioration
+title: '[Évolution] '
+labels: ['type:evolution', 'statut:nouveau']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Décrivez le **besoin métier** plutôt que la solution technique attendue :
+        cela laisse la place à une solution plus simple ou moins coûteuse.
+
+  - type: textarea
+    id: besoin
+    attributes:
+      label: Besoin
+      description: "Quel problème cette évolution résout-elle, et pour qui ?"
+      placeholder: |
+        En tant qu'utilisateur connecté, je veux exporter mon journal d'émotions
+        afin de pouvoir le montrer à un professionnel de santé.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: acteur
+    attributes:
+      label: Acteur concerné
+      options:
+        - Visiteur anonyme
+        - Utilisateur connecté
+        - Administrateur
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module concerné
+      options:
+        - Comptes utilisateurs
+        - Pages d'information
+        - Exercices de respiration
+        - Suivi personnel
+        - Administration
+        - Nouveau module
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priorite
+    attributes:
+      label: Priorité proposée (MoSCoW)
+      description: "Arbitrée lors du point d'avancement mensuel."
+      options:
+        - "Indispensable — le service est incomplet sans cela"
+        - "Nécessaire — apporte une valeur importante"
+        - "Souhaitable — confort d'usage"
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefice
+    attributes:
+      label: Bénéfice attendu
+      description: "Comment saura-t-on que l'évolution a atteint son but ?"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: donnees
+    attributes:
+      label: Impact sur les données
+      description: "Détermine si une analyse d'impact RGPD est nécessaire avant planification."
+      options:
+        - label: Cette évolution manipule des données de santé (émotions, diagnostics, sessions).
+        - label: Cette évolution touche à l'authentification ou aux droits d'accès.
