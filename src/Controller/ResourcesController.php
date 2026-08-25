@@ -15,7 +15,7 @@ final class ResourcesController extends AbstractController
     public function index(
         Request $request,
         PageRepository $pageRepository,
-        MenuRepository $menuRepository
+        MenuRepository $menuRepository,
     ): Response {
         $search = trim((string) $request->query->get('q', ''));
         $menuRaw = trim((string) $request->query->get('menu', ''));
@@ -24,7 +24,7 @@ final class ResourcesController extends AbstractController
         $resources = $pageRepository->findPublishedWithFilters(
             $search !== '' ? $search : null,
             $selectedMenuId,
-            24
+            24,
         );
 
         $featured = $resources[0] ?? null;
@@ -48,4 +48,3 @@ final class ResourcesController extends AbstractController
         ]);
     }
 }
-

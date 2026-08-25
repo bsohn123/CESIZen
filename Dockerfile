@@ -39,6 +39,8 @@ ENV APP_ENV=prod \
     COMPOSER_ALLOW_SUPERUSER=1 \
     SERVER_NAME=:80
 
+# L'image FrankenPHP officielle est basee sur Debian, pas sur Alpine : apk n'y
+# existe pas. mysql-client sert aux sauvegardes (backup.sh), acl aux droits sur var/.
 RUN install-php-extensions \
         pdo_mysql \
         intl \
@@ -46,7 +48,9 @@ RUN install-php-extensions \
         zip \
         opcache \
         apcu \
-    && apk add --no-cache mysql-client acl
+    && apt-get update \
+    && apt-get install -y --no-install-recommends default-mysql-client acl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

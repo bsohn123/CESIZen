@@ -36,11 +36,11 @@ class SecurityHardeningTest extends AbstractControllerTest
         // « login_throttling » est configuré sur le pare-feu principal.
         $this->assertTrue(
             $container->has('limiter._login_global_main'),
-            'La limitation globale des tentatives de connexion n\'est pas configurée (V02).'
+            'La limitation globale des tentatives de connexion n\'est pas configurée (V02).',
         );
         $this->assertTrue(
             $container->has('limiter._login_local_main'),
-            'La limitation par identifiant n\'est pas configurée (V02).'
+            'La limitation par identifiant n\'est pas configurée (V02).',
         );
     }
 
@@ -53,7 +53,7 @@ class SecurityHardeningTest extends AbstractControllerTest
     {
         $this->assertNotEmpty(
             PasswordPolicy::validate($password),
-            sprintf('Le mot de passe faible "%s" devrait être refusé (V03).', $password)
+            sprintf('Le mot de passe faible "%s" devrait être refusé (V03).', $password),
         );
     }
 
@@ -101,7 +101,7 @@ class SecurityHardeningTest extends AbstractControllerTest
         $this->assertNotSame(
             $plainToken,
             $storedToken,
-            'Le jeton envoyé par courriel ne doit jamais être stocké tel quel en base (V04).'
+            'Le jeton envoyé par courriel ne doit jamais être stocké tel quel en base (V04).',
         );
         $this->assertSame(ResetTokenHasher::hash($plainToken), $storedToken);
     }
@@ -147,7 +147,7 @@ class SecurityHardeningTest extends AbstractControllerTest
         $this->assertStringNotContainsString(
             '<?php',
             $sanitized,
-            'Le réencodage doit supprimer toute donnée non graphique (V06).'
+            'Le réencodage doit supprimer toute donnée non graphique (V06).',
         );
         $this->assertNotFalse(getimagesize($path), 'Le fichier réencodé doit rester une image valide.');
 
@@ -187,7 +187,7 @@ class SecurityHardeningTest extends AbstractControllerTest
         $this->assertInstanceOf(
             \DateTimeImmutable::class,
             $this->reloadUser('user@cesizen-test.fr')->getLastLoginAt(),
-            'La date de dernière connexion doit être enregistrée à chaque authentification réussie (V09).'
+            'La date de dernière connexion doit être enregistrée à chaque authentification réussie (V09).',
         );
     }
 

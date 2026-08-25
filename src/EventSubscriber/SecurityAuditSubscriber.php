@@ -72,7 +72,7 @@ final class SecurityAuditSubscriber implements EventSubscriberInterface
         $this->securityLogger->info('Déconnexion', [
             'event' => 'logout',
             'user' => self::mask($token?->getUserIdentifier() ?? 'anonyme'),
-            'ip' => $event->getRequest()?->getClientIp(),
+            'ip' => $event->getRequest()->getClientIp(),
         ]);
     }
 

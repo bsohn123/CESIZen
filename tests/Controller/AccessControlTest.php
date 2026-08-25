@@ -3,7 +3,7 @@
 namespace App\Tests\Controller;
 
 /**
- * Tests fonctionnels — Contrôle d'accès
+ * Tests fonctionnels — Contrôle d'accès.
  *
  * Couvre : routes publiques, routes protégées (ROLE_USER),
  *          routes admin (ROLE_ADMIN), accès refusé (403).

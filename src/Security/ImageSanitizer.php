@@ -43,7 +43,7 @@ final class ImageSanitizer
             throw new FileException(sprintf('L\'image doit faire au maximum %d x %d pixels.', self::MAX_DIMENSION, self::MAX_DIMENSION));
         }
 
-        $source = match ($info['mime'] ?? null) {
+        $source = match ($info['mime']) {
             'image/jpeg' => @imagecreatefromjpeg($path),
             'image/png' => @imagecreatefrompng($path),
             'image/gif' => @imagecreatefromgif($path),
@@ -51,7 +51,7 @@ final class ImageSanitizer
             default => false,
         };
 
-        if (false === $source || null === $source) {
+        if (false === $source) {
             throw new FileException('Format d\'image non pris en charge.');
         }
 

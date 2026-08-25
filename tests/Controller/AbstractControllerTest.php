@@ -55,7 +55,7 @@ abstract class AbstractControllerTest extends WebTestCase
         string $email = 'user@cesizen-test.fr',
         string $password = 'TestPass123!',
         array $roles = [],
-        bool $active = true
+        bool $active = true,
     ): User {
         $em = $this->getEntityManager();
         $hasher = static::getContainer()->get(UserPasswordHasherInterface::class);
@@ -67,7 +67,7 @@ abstract class AbstractControllerTest extends WebTestCase
 
         $user = new User();
         $user->setEmail($email);
-        $user->setUsername('test_' . substr(md5($email), 0, 8));
+        $user->setUsername('test_'.substr(md5($email), 0, 8));
         $user->setPassword($hasher->hashPassword($user, $password));
         $user->setRoles($roles);
         $user->setActive($active);

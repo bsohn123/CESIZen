@@ -61,7 +61,7 @@ class ForgotPasswordController extends AbstractController
                 $resetUrl = $this->generateUrl(
                     'app_reset_password',
                     ['token' => $token],
-                    UrlGeneratorInterface::ABSOLUTE_URL
+                    UrlGeneratorInterface::ABSOLUTE_URL,
                 );
 
                 $emailMessage = (new Email())
