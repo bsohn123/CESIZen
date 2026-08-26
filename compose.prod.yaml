@@ -19,7 +19,11 @@ services:
       MAILER_DSN: ${MAILER_DSN:?MAILER_DSN est obligatoire}
       MAILER_FROM: ${MAILER_FROM:-noreply@cesizen.fr}
       MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
-      SERVER_NAME: ${SERVER_NAME:-cesizen.fr}
+      # localhost declare en second site, en HTTP : le HEALTHCHECK du conteneur et
+      # les tests de fumee de deploy.sh interrogent http://localhost. Avec le seul
+      # nom de domaine, Caddy ne sert qu en HTTPS sur ce nom, ne trouve aucun site
+      # correspondant, et le conteneur est marque unhealthy.
+      SERVER_NAME: '${SERVER_NAME:-cesizen.fr}, http://localhost'
       TLS_EMAIL: ${TLS_EMAIL:-admin@cesizen.fr}
       DEFAULT_URI: https://${SERVER_NAME:-cesizen.fr}
     ports:
