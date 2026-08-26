@@ -39,7 +39,13 @@ log "Version actuellement déployée : $PREVIOUS_VERSION"
 # 2. Récupération de l'image — jamais de construction sur le serveur
 # ---------------------------------------------------------------------------
 log "Récupération de l'image $VERSION depuis le registre..."
-sed -i "s/^APP_VERSION=.*/APP_VERSION=$VERSION/" .env.prod || echo "APP_VERSION=$VERSION" >> .env.prod
+# sed sort en code 0 meme quand il ne remplace rien : le repli d un || n etait
+# jamais atteint et la version n etait pas ecrite si la ligne manquait.
+if grep -qE "^APP_VERSION=" .env.prod; then
+	sed -i "s/^APP_VERSION=.*/APP_VERSION=$VERSION/" .env.prod
+else
+	echo "APP_VERSION=$VERSION" >> .env.prod
+fi
 $COMPOSE pull app worker || fail "Image $VERSION introuvable dans le registre."
 
 # ---------------------------------------------------------------------------

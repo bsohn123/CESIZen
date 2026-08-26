@@ -37,10 +37,15 @@ jobs:
       - name: Vérification de la syntaxe PHP
         run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
 
+      - name: Emplacement du cache Composer
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/cache@v6
         with:
-          path: ~/.composer/cache
+          path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
 
       - run: composer install --no-interaction --prefer-dist --no-progress
 
@@ -129,10 +134,15 @@ jobs:
           extensions: pdo_mysql, intl, gd, zip
           coverage: none
 
+      - name: Emplacement du cache Composer
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/cache@v6
         with:
-          path: ~/.composer/cache
+          path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
 
       - run: composer install --no-interaction --prefer-dist --no-progress
 
@@ -213,6 +223,11 @@ jobs:
   production:
     name: 6 · Déploiement en production
     runs-on: ubuntu-latest
+    # La publication de la note de version cree une release : contents: write est
+    # requis. La permission globale reste en lecture, seul ce job est releve.
+    permissions:
+      contents: write
+      packages: read
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
     # L'environnement « production » est protégé dans les réglages du dépôt :
