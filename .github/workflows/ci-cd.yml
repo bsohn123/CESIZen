@@ -343,6 +343,9 @@ jobs:
           image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          # Fichier d exclusions : chaque entree porte sa justification, sa
+          # mesure compensatoire et sa date de reexamen.
+          trivyignores: .trivyignore
           exit-code: '1'
           format: sarif
           output: trivy.sarif

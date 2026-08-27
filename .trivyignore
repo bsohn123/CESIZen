@@ -1,0 +1,37 @@
+# Vulnérabilités écartées temporairement du scan Trivy.
+#
+# RÈGLE : rien n'entre ici sans trois éléments — la raison pour laquelle le
+# correctif est hors de notre portée, la mesure compensatoire prise, et une date
+# de réexamen. Une ligne sans date est une faille qu'on a décidé de ne plus voir.
+#
+# -----------------------------------------------------------------------------
+# Bibliothèques Go compilées dans le binaire FrankenPHP
+# -----------------------------------------------------------------------------
+#
+# Constat (27/08/2026) : ces quatre vulnérabilités sont présentes dans l'image
+# officielle dunglas/frankenphp la plus récente, ligne PHP 8.3 comme PHP 8.4,
+# toutes deux publiées le 26/08/2026. Elles ne viennent pas de notre Dockerfile
+# mais du binaire frankenphp lui-même, écrit en Go.
+#
+# Trivy les classe « fixed » parce que les bibliothèques Go concernées ont
+# publié un correctif — mais FrankenPHP n'a pas encore reconstruit son binaire
+# avec ces versions. Aucune image de base disponible aujourd'hui ne les corrige :
+# monter de version ne sert à rien, et la ligne PHP 8.4 ajoute même 33 failles
+# HIGH supplémentaires sur les paquets système.
+#
+# Mesure compensatoire : l'API d'administration de Caddy — la voie par laquelle
+# le code vulnérable de kin-openapi est atteignable — est explicitement coupée
+# par « admin off » dans docker/Caddyfile et docker/Caddyfile.proxy. Les
+# fonctionnalités xDS/gRPC visées par l'avis gRPC-Go ne sont pas utilisées.
+#
+# À réexaminer : à chaque publication d'une nouvelle version de FrankenPHP, et
+# au plus tard le 01/11/2026. Suivi : issue « Trivy — dépendances Go de
+# FrankenPHP ».
+
+# kin-openapi — contournement d'authentification par défaut permissif
+GHSA-r277-6w6q-xmqw exp:2026-11-01
+CVE-2026-76905 exp:2026-11-01
+CVE-2026-77354 exp:2026-11-01
+
+# gRPC-Go — vulnérabilités xDS RBAC et HTTP/2
+GHSA-hrxh-6v49-42gf exp:2026-11-01

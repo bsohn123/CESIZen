@@ -51,6 +51,15 @@ RUN install-php-extensions \
         redis \
     && apt-get update \
     && apt-get install -y --no-install-recommends default-mysql-client acl \
+    # Retrait de la chaîne de compilation, tirée par install-php-extensions et
+    # inutile une fois les extensions compilées : g++, libc6-dev, linux-libc-dev
+    # et leurs dépendances. Trois bénéfices — une image plus légère, trente
+    # alertes Trivy de moins (les en-têtes de noyau de linux-libc-dev traînent
+    # des dizaines de CVE alors qu'ils ne contiennent aucun code exécutable), et
+    # surtout plus de compilateur disponible pour qui obtiendrait une exécution
+    # de code dans le conteneur.
+    && apt-get purge -y linux-libc-dev \
+    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
