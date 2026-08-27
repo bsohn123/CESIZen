@@ -37,7 +37,7 @@ FROM dunglas/frankenphp:1-php8.3 AS app
 ENV APP_ENV=prod \
     APP_DEBUG=0 \
     COMPOSER_ALLOW_SUPERUSER=1 \
-    SERVER_NAME=:80
+    SERVER_NAME=:8080
 
 # L'image FrankenPHP officielle est basee sur Debian, pas sur Alpine : apk n'y
 # existe pas. mysql-client sert aux sauvegardes (backup.sh), acl aux droits sur var/.
@@ -48,6 +48,7 @@ RUN install-php-extensions \
         zip \
         opcache \
         apcu \
+        redis \
     && apt-get update \
     && apt-get install -y --no-install-recommends default-mysql-client acl \
     && rm -rf /var/lib/apt/lists/*
@@ -64,14 +65,33 @@ COPY . .
 RUN php bin/console importmap:install \
     && php bin/console asset-map:compile \
     && php bin/console cache:warmup \
-    && mkdir -p var/log var/cache public/uploads/profile \
+    && mkdir -p var/log var/cache var/sessions public/uploads/profile \
     && chown -R www-data:www-data var public/uploads
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
+# Le binaire FrankenPHP est livré avec la capacité de fichier
+# cap_net_bind_service, qui lui permettrait de se lier au port 80 sans être
+# root. L'application écoutant désormais sur 8080, elle est inutile — et elle
+# est même bloquante : sous cap_drop ALL + no-new-privileges, le noyau refuse
+# d'exécuter un binaire porteur d'une capacité qu'il ne peut pas accorder
+# (« exec: frankenphp: Operation not permitted »). On la retire.
+RUN setcap -r /usr/local/bin/frankenphp
+
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-    CMD curl --fail http://localhost/health || exit 1
+    CMD curl --fail http://localhost:8080/health || exit 1
+
+# Le conteneur ne tourne plus en root. C'est possible sans aucune capacité
+# particulière parce que l'application écoute sur 8080, port non privilégié :
+# se lier à 80 aurait exigé CAP_NET_BIND_SERVICE. Le compte www-data possède
+# déjà var/ et public/uploads (chown ci-dessus).
+#
+# Ce n'est pas seulement une bonne pratique : avec cap_drop ALL, root perd
+# CAP_DAC_OVERRIDE et ne peut donc plus écrire dans les fichiers appartenant à
+# www-data. Tourner sous le compte propriétaire est la solution correcte —
+# rendre DAC_OVERRIDE à root ne ferait que masquer le problème.
+USER www-data
 
 ENTRYPOINT ["entrypoint"]
 CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]

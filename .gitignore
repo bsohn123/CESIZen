@@ -40,3 +40,8 @@
 # Dépendances npm : reconstruites par `npm ci`, jamais versionnées.
 /node_modules/
 ###< outillage front ###
+
+###> audit dynamique ###
+# Fichier d environnement genere par le job ZAP sur l executeur.
+/.env.zap
+###< audit dynamique ###

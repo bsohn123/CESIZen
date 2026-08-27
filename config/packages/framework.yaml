@@ -4,6 +4,12 @@ framework:
 
     # Note that the session will be started ONLY if you read or write from it.
     session:
+        # Gestionnaire de session configurable. Par defaut : fichiers dans
+        # var/sessions, ce qui convient a un conteneur unique. En production
+        # avec plusieurs repliques, SESSION_DSN pointe vers Redis : sans
+        # stockage partage, un utilisateur connecte sur un conteneur serait
+        # deconnecte des que le proxy l orienterait vers un autre.
+        handler_id: '%env(resolve:SESSION_DSN)%'
         # V12 — durcissement du cookie de session.
         cookie_secure: auto # 'true' dès que la requête est en HTTPS
         cookie_httponly: true # inaccessible au JavaScript (limite le vol par XSS)
