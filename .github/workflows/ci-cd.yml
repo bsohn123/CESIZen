@@ -337,7 +337,31 @@ jobs:
       # ignore-unfixed est delibere : echouer sur une faille sans correctif
       # disponible ne ferait que maintenir la chaine au rouge sans qu aucune
       # action ne soit possible. Seules les failles corrigeables bloquent.
-      - name: Analyse de l image (Trivy)
+      # Deux passes distinctes, parce que les deux besoins sont differents et
+      # qu une seule invocation ne peut pas satisfaire les deux.
+      #
+      # En sortie SARIF, trivy-action inclut TOUTES les gravites quel que soit
+      # le filtre « severity » — comportement documente. Une passe unique en
+      # SARIF produisait donc un rapport contenant des MEDIUM, et Trivy sortait
+      # en code 1 parce que le rapport n etait pas vide : la chaine echouait sur
+      # des failles que l on n avait pas decide de rendre bloquantes.
+      #
+      # Passe 1 — INVENTAIRE, non bloquante. Toutes les gravites remontent dans
+      # l onglet Security : c est la visibilite qui compte ici, pas le verdict.
+      - name: Inventaire des vulnerabilites de l image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          exit-code: '0'
+          format: sarif
+          output: trivy.sarif
+
+      # Passe 2 — GARDE-FOU, bloquante. Seules les failles HIGH et CRITICAL
+      # corrigeables arretent la chaine. Sortie en table pour que le journal
+      # affiche directement ce qui bloque.
+      - name: Garde-fou vulnerabilites HIGH/CRITICAL (Trivy)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
@@ -347,8 +371,7 @@ jobs:
           # mesure compensatoire et sa date de reexamen.
           trivyignores: .trivyignore
           exit-code: '1'
-          format: sarif
-          output: trivy.sarif
+          format: table
 
       # Publie meme si Trivy a echoue : le rapport est justement ce qui permet
       # de savoir quoi corriger.
