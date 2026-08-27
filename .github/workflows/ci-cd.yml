@@ -60,10 +60,45 @@ jobs:
         run: vendor/bin/phpstan analyse --configuration=phpstan.dist.neon --no-progress
 
   # ---------------------------------------------------------------------------
-  # 2. Sécurité — vulnérabilités connues des dépendances (V08)
+  # 2. Secrets — détection dans le code et dans l'historique
+  # ---------------------------------------------------------------------------
+  secrets:
+    name: 2 · Détection de secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # L'historique complet est nécessaire à la seconde passe.
+          fetch-depth: 0
+
+      # Passe 1 — l'arbre de travail. BLOQUANTE : aucun secret ne doit entrer
+      # dans le code aujourd'hui. --no-git analyse les fichiers tels quels,
+      # indépendamment des commits.
+      - name: Secrets dans le code (bloquant)
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \n            detect --source=/repo --no-git --redact --verbose
+
+      # Passe 2 — l'historique complet. NON BLOQUANTE, délibérément.
+      #
+      # Des identifiants de service de courriel ont été versionnés par le passé
+      # (V01, issue #19). Ils restent lisibles dans l'historique Git, et
+      # réécrire l'historique d'un dépôt public ne les efface ni des copies
+      # déjà faites, ni des caches de GitHub. La seule réponse valable est de
+      # les RÉVOQUER.
+      #
+      # Cette passe n'est donc pas là pour être corrigée par une modification
+      # du code, mais pour rappeler à chaque exécution que la révocation reste
+      # à faire. Elle redeviendra bloquante une fois l'issue #19 close.
+      - name: Secrets dans l'historique (rappel, non bloquant)
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \n            detect --source=/repo --redact --verbose
+
+  # ---------------------------------------------------------------------------
+  # 3. Sécurité — vulnérabilités connues des dépendances (V08)
   # ---------------------------------------------------------------------------
   securite:
-    name: 2 · Sécurité des dépendances
+    name: 3 · Sécurité des dépendances
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -103,12 +138,12 @@ jobs:
           exit 100
 
   # ---------------------------------------------------------------------------
-  # 3. Tests — suite fonctionnelle sur une vraie base MySQL
+  # 4. Tests — suite fonctionnelle sur une vraie base MySQL
   # ---------------------------------------------------------------------------
   tests:
-    name: 3 · Tests fonctionnels
+    name: 4 · Tests fonctionnels
     runs-on: ubuntu-latest
-    needs: [qualite, securite]
+    needs: [qualite, secrets, securite]
     services:
       database:
         image: mysql:8.4
@@ -132,7 +167,8 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           extensions: pdo_mysql, intl, gd, zip
-          coverage: none
+          # pcov : mesure de couverture, nettement plus rapide que Xdebug.
+          coverage: pcov
 
       - name: Emplacement du cache Composer
         id: composer-cache
@@ -154,15 +190,96 @@ jobs:
       - name: Ressources front-end
         run: php bin/console importmap:install
 
-      - name: Suite de tests
-        run: php bin/phpunit
+      # Aucun seuil bloquant pour l'instant : le pourcentage est affiché dans le
+      # journal pour servir de point de départ. Un seuil sera fixé une fois la
+      # valeur de référence connue.
+      - name: Suite de tests et couverture
+        run: php bin/phpunit --coverage-text
 
   # ---------------------------------------------------------------------------
-  # 4. Construction — image applicative unique, réutilisée en recette et en prod
+  # 5. Audit dynamique — l'application réellement démarrée
+  # ---------------------------------------------------------------------------
+  # Les autres contrôles lisent le code. Celui-ci interroge l'application en
+  # marche : en-têtes réellement publiés, comportement réel des formulaires,
+  # cookies réellement posés. C'est le seul qui teste ce qui est servi.
+  zap:
+    name: 5 · Audit dynamique (ZAP)
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Construction de l'image à auditer
+        run: |
+          REPO="$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
+          echo "IMAGE_REPO=$REPO" >> "$GITHUB_ENV"
+          docker build -t "ghcr.io/$REPO:zap" .
+
+      # Les identifiants sont générés à la volée et ne servent qu'à ce job :
+      # aucun secret du dépôt n'est nécessaire, et rien n'est écrit ailleurs
+      # que sur l'exécuteur, détruit à la fin.
+      - name: Démarrage de la composition
+        run: |
+          MYSQL_PW="$(openssl rand -hex 16)"
+          {
+            echo "SERVER_NAME=http://localhost"
+            echo "TLS_EMAIL=zap@example.test"
+            echo "APP_SECRET=$(openssl rand -hex 32)"
+            echo "APP_VERSION=zap"
+            echo "GITHUB_REPOSITORY=$IMAGE_REPO"
+            echo "MYSQL_DATABASE=cesizen"
+            echo "MYSQL_USER=cesizen"
+            echo "MYSQL_PASSWORD=$MYSQL_PW"
+            echo "MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)"
+            echo "DATABASE_URL=mysql://cesizen:$MYSQL_PW@database:3306/cesizen?serverVersion=8.4.0&charset=utf8mb4"
+            echo "REDIS_PASSWORD=$(openssl rand -hex 16)"
+            echo "MAILER_DSN=null://null"
+            echo "MAILER_FROM=zap@example.test"
+          } > .env.zap
+          docker compose -f compose.prod.yaml --env-file .env.zap up -d --scale app=2
+
+      - name: Attente de la sonde de santé
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS --max-time 3 http://localhost/health >/dev/null 2>&1; then
+              echo "Application prête après $((i * 2)) s."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::L application n a pas démarré en 120 s."
+          docker compose -f compose.prod.yaml --env-file .env.zap logs --tail=50
+          exit 1
+
+      # fail_action reste à false pour cette première mise en place : un scan
+      # dynamique sur une application jamais auditée ainsi remonte toujours du
+      # bruit. Les alertes sont relevées, triées, puis certaines deviendront
+      # bloquantes — décider avant d avoir vu les résultats n aurait pas de sens.
+      - name: Scan ZAP (baseline)
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+          fail_action: false
+
+      - name: Arrêt de la composition
+        if: always()
+        run: docker compose -f compose.prod.yaml --env-file .env.zap down -v --remove-orphans
+
+  # ---------------------------------------------------------------------------
+  # 6. Construction — image applicative unique, réutilisée en recette et en prod
   # ---------------------------------------------------------------------------
   build:
-    name: 4 · Construction de l'image
+    name: 6 · Construction de l'image
     runs-on: ubuntu-latest
+    # Declarer des permissions au niveau du job REMPLACE le jeu global : les
+    # deux permissions deja necessaires doivent donc etre repetees ici.
+    permissions:
+      contents: read
+      packages: write
+      # Publication du rapport Trivy dans l onglet Security du depot.
+      security-events: write
     needs: tests
     if: github.event_name == 'push'
     outputs:
@@ -197,11 +314,36 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # L image analysee est celle qui vient d etre publiee, pas une image
+      # reconstruite pour l occasion : c est bien l artefact deployable qui est
+      # examine.
+      #
+      # ignore-unfixed est delibere : echouer sur une faille sans correctif
+      # disponible ne ferait que maintenir la chaine au rouge sans qu aucune
+      # action ne soit possible. Seules les failles corrigeables bloquent.
+      - name: Analyse de l image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          format: sarif
+          output: trivy.sarif
+
+      # Publie meme si Trivy a echoue : le rapport est justement ce qui permet
+      # de savoir quoi corriger.
+      - name: Publication du rapport dans l onglet Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy.sarif
+
   # ---------------------------------------------------------------------------
-  # 5. Recette — déploiement automatique à chaque fusion sur develop
+  # 7. Recette — déploiement automatique à chaque fusion sur develop
   # ---------------------------------------------------------------------------
   recette:
-    name: 5 · Déploiement en recette
+    name: 7 · Déploiement en recette
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/develop'
@@ -218,10 +360,10 @@ jobs:
           script: /opt/cesizen-recette/deploy.sh develop
 
   # ---------------------------------------------------------------------------
-  # 6. Production — étiquette v* + validation manuelle dans GitHub
+  # 8. Production — étiquette v* + validation manuelle dans GitHub
   # ---------------------------------------------------------------------------
   production:
-    name: 6 · Déploiement en production
+    name: 8 · Déploiement en production
     runs-on: ubuntu-latest
     # La publication de la note de version cree une release : contents: write est
     # requis. La permission globale reste en lecture, seul ce job est releve.

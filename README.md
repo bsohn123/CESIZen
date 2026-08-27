@@ -74,10 +74,38 @@ accompagnée d'un test de non-régression.
 ## Qualité
 
 ```bash
-php-cs-fixer fix                                    # norme PSR-12 + Symfony
-phpstan analyse --configuration=phpstan.dist.neon   # analyse statique
-composer audit                                      # CVE des dépendances
+vendor/bin/php-cs-fixer fix                                    # norme PSR-12 + Symfony
+vendor/bin/phpstan analyse --configuration=phpstan.dist.neon   # analyse statique
+composer audit                                                 # CVE des dépendances
 ```
+
+Les raccourcis sont regroupés dans le `Makefile` : `make lint`, `make test`,
+`make audit`, `make scale`. `make` seul affiche la liste des cibles.
+
+### Hook de pré-commit
+
+Un hook refuse les commits contenant un secret détecté par Gitleaks, et ceux
+introduisant une erreur de syntaxe PHP. À activer une fois par clone :
+
+```bash
+make hooks          # ou : git config core.hooksPath .githooks
+```
+
+Le hook reste silencieux quand tout va bien, et **ne bloque pas** si Gitleaks
+n'est pas installé sur le poste : un outil manquant ne doit pas empêcher de
+travailler. La chaîne d'intégration, elle, l'exige (étape 2).
+
+## Montée en charge
+
+L'application se réplique horizontalement derrière un reverse proxy :
+
+```bash
+make scale          # ou : ./scripts/demo-scaling.sh 3
+```
+
+Le script démarre trois conteneurs applicatifs et montre à l'écran la
+répartition des requêtes entre eux. Seuils de déclenchement, paliers et limites
+connues : [`docs/SCALING.md`](docs/SCALING.md).
 
 ## Secrets
 
@@ -94,7 +122,7 @@ Automatisé par GitHub Actions (`.github/workflows/ci-cd.yml`) :
 
 | Déclencheur | Effet |
 |---|---|
-| Pull request | qualité, audit des dépendances, tests |
+| Pull request | qualité, détection de secrets, audit des dépendances, tests, audit dynamique |
 | Fusion sur `develop` | + construction de l'image et déploiement en recette |
 | Étiquette `v*.*.*` | + déploiement en production après validation manuelle |
 

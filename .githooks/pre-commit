@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+# Contrôle avant commit : secrets et syntaxe PHP.
+#
+# Activation :  git config core.hooksPath .githooks   (ou : make hooks)
+#
+# Ce hook est volontairement silencieux quand tout va bien, et ne bloque jamais
+# quelqu'un qui n'a pas gitleaks installé : un outil manquant sur un poste ne
+# doit pas empêcher de travailler. La chaîne d'intégration, elle, l'exige.
+
+set -e
+
+INDEXES="$(git diff --cached --name-only --diff-filter=ACMR)"
+[ -n "$INDEXES" ] || exit 0
+
+rouge() { printf '\033[0;31m%s\033[0m\n' "$1" >&2; }
+
+# --- 1. Secrets dans les fichiers indexés ------------------------------------
+# Trois façons d'exécuter gitleaks, par ordre de préférence : binaire local,
+# puis image Docker. Si aucune n'est disponible, on passe sans rien dire.
+if command -v gitleaks >/dev/null 2>&1; then
+	if ! gitleaks protect --staged --redact --no-banner >/dev/null 2>&1; then
+		rouge 'COMMIT REFUSÉ : gitleaks a détecté un secret dans les fichiers indexés.'
+		rouge ''
+		gitleaks protect --staged --redact --no-banner 2>&1 | sed 's/^/  /' >&2 || true
+		rouge ''
+		rouge 'Retirez le secret puis recommencez. Si la détection est erronée,'
+		rouge 'documentez-la dans .gitleaksignore plutôt que de contourner le hook.'
+		exit 1
+	fi
+fi
+
+# --- 2. Syntaxe des fichiers PHP indexés -------------------------------------
+if command -v php >/dev/null 2>&1; then
+	ERREURS=0
+	for fichier in $INDEXES; do
+		case "$fichier" in
+		*.php) ;;
+		*) continue ;;
+		esac
+		[ -f "$fichier" ] || continue
+		if ! php -l "$fichier" >/dev/null 2>&1; then
+			[ "$ERREURS" -eq 0 ] && rouge 'COMMIT REFUSÉ : erreur de syntaxe PHP.'
+			php -l "$fichier" 2>&1 | sed 's/^/  /' >&2 || true
+			ERREURS=$((ERREURS + 1))
+		fi
+	done
+	[ "$ERREURS" -eq 0 ] || exit 1
+fi
+
+exit 0
