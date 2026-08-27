@@ -262,7 +262,11 @@ jobs:
       # bruit. Les alertes sont relevées, triées, puis certaines deviendront
       # bloquantes — décider avant d avoir vu les résultats n aurait pas de sens.
       - name: Scan ZAP (baseline)
-        uses: zaproxy/action-baseline@v0.12.0
+        # v0.15.0 et non v0.12.0 : cette derniere embarque upload-artifact@v3,
+        # dont GitHub a ferme l API. Le scan se deroulait correctement mais le
+        # job echouait a la publication du rapport (« artifact name zap_scan is
+        # not valid »).
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost'
           rules_file_name: '.zap/rules.tsv'
