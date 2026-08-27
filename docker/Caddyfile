@@ -1,41 +1,27 @@
-# Configuration du serveur web de production (FrankenPHP = Caddy + PHP).
+# Configuration interne du conteneur applicatif (FrankenPHP = Caddy + PHP).
 #
-# V05 — cette configuration publie les en-têtes de sécurité HTTP qui étaient
-# entièrement absents de l'application auditée.
+# Depuis la mise en place du scaling horizontal, ce fichier ne sert plus que le
+# PHP en interne, sur 8080, sans TLS. Les en-têtes de sécurité publics (V05) et
+# les certificats sont portés par le conteneur « proxy »
+# (docker/Caddyfile.proxy), seul point d'entrée du trafic externe.
 
 {
 	{$CADDY_GLOBAL_OPTIONS}
 	frankenphp
-	# Adresse utilisée par Let's Encrypt pour prévenir d'une expiration.
-	email {$TLS_EMAIL:admin@cesizen.fr}
+	# Aucun certificat n'est demandé ici : ce serveur n'est jamais joint
+	# directement depuis Internet.
+	auto_https off
 }
 
-{$SERVER_NAME:localhost} {
+{$SERVER_NAME::8080} {
 	root /app/public
 	encode zstd br gzip
 
-	# ---------------------------------------------------------------------
-	# V05 — en-têtes de sécurité
-	# ---------------------------------------------------------------------
-	header {
-		# Force HTTPS pendant un an, sous-domaines compris.
-		Strict-Transport-Security "max-age=31536000; includeSubDomains"
-		# Politique de sécurité du contenu : tout provient du même domaine.
-		# 'unsafe-inline' sur les styles reste nécessaire tant que les gabarits
-		# Twig contiennent des attributs style="" (dette suivie en ticket).
-		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'"
-		# Empêche le navigateur de deviner un type MIME (protège des polyglottes).
-		X-Content-Type-Options "nosniff"
-		# Interdit l'inclusion du site dans une iframe (clickjacking).
-		X-Frame-Options "DENY"
-		# Ne divulgue pas l'URL complète aux sites tiers.
-		Referrer-Policy "strict-origin-when-cross-origin"
-		# Coupe les API navigateur non utilisées par l'application.
-		Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=()"
-		# Ne pas annoncer le serveur ni sa version.
-		-Server
-		-X-Powered-By
-	}
+	# Nom du conteneur qui a traité la requête. C'est ce qui rend la
+	# répartition de charge observable : scripts/demo-scaling.sh lit cet
+	# en-tête pour montrer que les requêtes atterrissent sur des réplicas
+	# différents.
+	header X-Served-By {system.hostname}
 
 	# Les fichiers téléversés ne sont jamais interprétés : seuls les fichiers
 	# statiques sont servis depuis /uploads, et le PHP n'est exécuté que par

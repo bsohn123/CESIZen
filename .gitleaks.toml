@@ -1,0 +1,35 @@
+# Configuration Gitleaks du projet.
+#
+# La passe « arbre de travail » utilise --no-git : elle analyse les fichiers
+# présents sur le disque, sans tenir compte de .gitignore. Sur un poste de
+# développement, vendor/ et node_modules/ sont donc scannés alors qu'ils ne sont
+# pas versionnés — et la règle générique « generic-api-key » y trouve des
+# constantes Symfony et des fragments du phar PHPStan qui ne sont pas des
+# secrets.
+#
+# Ces répertoires sont donc exclus. Rien d'autre ne l'est : une exclusion sans
+# justification est une faille qu'on choisit de ne plus voir.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Répertoires générés, jamais versionnés"
+paths = [
+    '''(^|/)vendor/''',
+    '''(^|/)node_modules/''',
+    '''(^|/)var/''',
+    '''(^|/)public/assets/''',
+    '''(^|/)public/bundles/''',
+    '''(^|/)\.git/''',
+    '''(^|/)\.php-cs-fixer\.cache$''',
+]
+
+# Volontairement NON exclus, bien qu'ils ressortent lors d'une analyse locale :
+#
+#   .env.local            contient de vrais identifiants — c'est précisément ce
+#                         que l'outil doit signaler. Il n'est jamais versionné,
+#                         donc absent de l'exécuteur ; l'exclure reviendrait à
+#                         se priver de l'alerte le jour où .gitignore change.
+#   cesizen-bloc3.patch   artefact local de reprise du dépôt, contient un ancien
+#                         APP_SECRET. À supprimer du poste plutôt qu'à masquer.

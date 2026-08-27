@@ -1,0 +1,37 @@
+# Règles du scan ZAP « baseline ».
+#
+# Format : <identifiant>	<IGNORE|WARN|FAIL>	<commentaire>
+# Séparateur : TABULATION (le fichier est illisible par ZAP avec des espaces).
+#
+# Principe retenu : on met en IGNORE ce qui est purement informatif ou sans
+# objet pour cette application, et on laisse tout le reste en WARN. Rien n'est
+# en FAIL pour l'instant — le job ne bloque pas (fail_action: false). Une alerte
+# ne passe en FAIL qu'après avoir été examinée et jugée pertinente.
+#
+# Ne jamais mettre en IGNORE une alerte simplement parce qu'elle est bruyante :
+# une règle désactivée sans justification est une faille qu'on choisit de ne
+# plus voir.
+
+# --- Informatif : aucune action possible ou pertinente -----------------------
+10015	IGNORE	Directives Cache-Control à réexaminer — sans objet, aucune page ne sert de contenu sensible mis en cache
+10027	IGNORE	Commentaires suspects dans le code source — bruit sur les commentaires Twig et JS légitimes
+10049	IGNORE	Contenu stockable et cachable — comportement voulu sur les pages publiques
+10096	IGNORE	Horodatage divulgué — correspond aux dates d'articles, publiques par nature
+10109	IGNORE	Application web moderne — simple constat de détection, pas une vulnérabilité
+10112	IGNORE	Jeton de session dans l'URL — faux positif sur les liens de réinitialisation signés
+
+# --- Déjà couvert par la configuration du proxy (V05) ------------------------
+# Ces règles restent en WARN et non en IGNORE : si un jour l'en-tête disparaît
+# du Caddyfile, l'alerte doit réapparaître dans le journal.
+10035	WARN	Strict-Transport-Security — posé par docker/Caddyfile.proxy
+10038	WARN	Content-Security-Policy — posé par docker/Caddyfile.proxy
+10020	WARN	X-Frame-Options — posé par docker/Caddyfile.proxy
+10021	WARN	X-Content-Type-Options — posé par docker/Caddyfile.proxy
+
+# --- Attendu en environnement de test local ----------------------------------
+# Le scan tourne en HTTP sur localhost, sans certificat : les alertes liées à
+# l'absence de TLS ne reflètent pas la production, qui est en HTTPS.
+10011	IGNORE	Cookie sans attribut Secure — attendu en HTTP local, cookie_secure vaut « auto » et s'active en HTTPS
+90011	IGNORE	Charset non déclaré — sans objet sur les réponses de la sonde de santé
+
+# Tout le reste conserve le niveau WARN par défaut.

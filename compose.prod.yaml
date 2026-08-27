@@ -1,14 +1,55 @@
 # Environnement de PRODUCTION — déployé sur le VPS par deploy.sh.
 #
-#   docker compose -f compose.prod.yaml up -d
+#   docker compose -f compose.prod.yaml up -d --scale app=3
 #
 # Aucun secret n'est écrit ici : les valeurs proviennent du fichier .env.prod
 # déposé sur le serveur avec des droits 600 et jamais versionné.
+# Voir .env.prod.example pour la liste des variables attendues.
+#
+# Architecture : le conteneur « proxy » est le seul à publier des ports. Les
+# conteneurs applicatifs écoutent en interne sur 8080, ce qui permet d'en
+# démarrer plusieurs sans conflit de ports. Les sessions vivent dans Redis et
+# les fichiers téléversés dans un volume partagé : un utilisateur peut donc
+# être servi indifféremment par n'importe quel réplica.
 
 services:
-  app:
-    image: ghcr.io/${GITHUB_REPOSITORY:-bsohn123/cesizen}:${APP_VERSION:-latest}
+  # ---------------------------------------------------------------------------
+  # Reverse proxy public — seul point d'entrée du trafic externe.
+  # ---------------------------------------------------------------------------
+  proxy:
+    image: caddy:2-alpine
     restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-cesizen.fr}
+      TLS_EMAIL: ${TLS_EMAIL:-admin@cesizen.fr}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp' # HTTP/3
+    volumes:
+      - ./docker/Caddyfile.proxy:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # certificats TLS : à conserver entre deux déploiements
+      - caddy_config:/config
+    networks:
+      - frontend
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    # Seule capacité conservée : se lier aux ports privilégiés 80 et 443.
+    cap_add: ['NET_BIND_SERVICE']
+    mem_limit: 256m
+    cpus: 0.5
+
+  # ---------------------------------------------------------------------------
+  # Migrations — jouées une seule fois, avant le démarrage des réplicas.
+  # ---------------------------------------------------------------------------
+  # Sans ce service dédié, trois réplicas appliqueraient les migrations
+  # simultanément au démarrage : risque réel de corruption du schéma.
+  migrate:
+    image: ghcr.io/${GITHUB_REPOSITORY:-bsohn123/cesizen}:${APP_VERSION:-latest}
+    restart: 'no'
     depends_on:
       database:
         condition: service_healthy
@@ -17,37 +58,90 @@ services:
       APP_SECRET: ${APP_SECRET:?APP_SECRET est obligatoire}
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL est obligatoire}
       MAILER_DSN: ${MAILER_DSN:?MAILER_DSN est obligatoire}
+      MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
+      DEFAULT_URI: https://${SERVER_NAME:-cesizen.fr}
+      RUN_MIGRATIONS: '1'
+    # Le point d'entrée attend la base, applique les migrations, puis exécute
+    # cette commande — qui se contente de rendre la main.
+    command: ['php', '-r', 'echo "Migrations appliquees.", PHP_EOL;']
+    networks:
+      - backend
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    mem_limit: 512m
+    cpus: 0.5
+
+  # ---------------------------------------------------------------------------
+  # Application — réplicable : docker compose up -d --scale app=3
+  # ---------------------------------------------------------------------------
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY:-bsohn123/cesizen}:${APP_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      APP_ENV: prod
+      APP_SECRET: ${APP_SECRET:?APP_SECRET est obligatoire}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL est obligatoire}
+      MAILER_DSN: ${MAILER_DSN:?MAILER_DSN est obligatoire}
       MAILER_FROM: ${MAILER_FROM:-noreply@cesizen.fr}
       MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
-      # localhost declare en second site, en HTTP : le HEALTHCHECK du conteneur et
-      # les tests de fumee de deploy.sh interrogent http://localhost. Avec le seul
-      # nom de domaine, Caddy ne sert qu en HTTPS sur ce nom, ne trouve aucun site
-      # correspondant, et le conteneur est marque unhealthy.
-      SERVER_NAME: '${SERVER_NAME:-cesizen.fr}, http://localhost'
-      TLS_EMAIL: ${TLS_EMAIL:-admin@cesizen.fr}
+      # Sessions partagées : sans cela, un utilisateur connecté sur un réplica
+      # serait déconnecté dès que le proxy l'orienterait vers un autre.
+      SESSION_DSN: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD est obligatoire}@redis:6379
+      # Écoute interne uniquement : aucun port publié, aucun TLS ici.
+      SERVER_NAME: ':8080'
       DEFAULT_URI: https://${SERVER_NAME:-cesizen.fr}
-    ports:
-      - '80:80'
-      - '443:443'
-      - '443:443/udp' # HTTP/3
+      RUN_MIGRATIONS: '0' # jouées une seule fois par le service « migrate »
+    expose:
+      - '8080'
     volumes:
-      - caddy_data:/data # certificats TLS : à conserver entre deux déploiements
-      - caddy_config:/config
+      # Monté dans tous les réplicas : une photo de profil envoyée sur l'un doit
+      # rester visible depuis les autres.
       - uploads:/app/public/uploads
+      # Seuls répertoires écrivables d'un système de fichiers en lecture seule.
+      # La syntaxe longue est nécessaire : un tmpfs est monté root:root 0755 par
+      # défaut, illisible en écriture pour www-data sous lequel tourne l'image.
+      # mode 1023 = 01777 en octal. Compose interprète cette valeur en décimal :
+      # écrire 1777 donne des permissions aberrantes (d-wxrwS--t) et l'application
+      # échoue sur « Unable to create the cache directory ».
+      # Le cache est préchauffé par le point d'entrée à chaque démarrage — il
+      # est donc chaud avant la première requête, pas reconstruit à la volée.
+      - { type: tmpfs, target: /tmp, tmpfs: { mode: 1023 } }
+      - { type: tmpfs, target: /app/var/cache, tmpfs: { mode: 1023 } }
+      - { type: tmpfs, target: /app/var/log, tmpfs: { mode: 1023 } }
+      - { type: tmpfs, target: /app/var/sessions, tmpfs: { mode: 1023 } }
     healthcheck:
-      test: ['CMD', 'curl', '--fail', 'http://localhost/health']
+      test: ['CMD', 'curl', '--fail', 'http://localhost:8080/health']
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 40s
+    networks:
+      - frontend
+      - backend
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    read_only: true
+    mem_limit: 1g
+    cpus: 1.0
 
+  # ---------------------------------------------------------------------------
   # Consommateur de la file Messenger : sans lui, aucun courriel ne part
   # (les messages SendEmailMessage sont routés vers le transport « async »).
+  # ---------------------------------------------------------------------------
   worker:
     image: ghcr.io/${GITHUB_REPOSITORY:-bsohn123/cesizen}:${APP_VERSION:-latest}
     restart: unless-stopped
     depends_on:
-      app:
+      migrate:
+        condition: service_completed_successfully
+      redis:
         condition: service_healthy
     environment:
       APP_ENV: prod
@@ -56,9 +150,56 @@ services:
       MAILER_DSN: ${MAILER_DSN:?MAILER_DSN est obligatoire}
       MAILER_FROM: ${MAILER_FROM:-noreply@cesizen.fr}
       MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
+      SESSION_DSN: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD est obligatoire}@redis:6379
       DEFAULT_URI: https://${SERVER_NAME:-cesizen.fr}
-      RUN_MIGRATIONS: '0' # seul le conteneur applicatif joue les migrations
+      RUN_MIGRATIONS: '0'
     command: ['php', 'bin/console', 'messenger:consume', 'async', '--time-limit=3600', '--memory-limit=128M']
+    networks:
+      - backend
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    read_only: true
+    volumes:
+      # Voir le service « app » : mode 1023 (= 01777 en octal) obligatoire, le
+      # conteneur tournant sous www-data alors qu'un tmpfs est monté
+      # root:root 0755 par défaut.
+      - { type: tmpfs, target: /tmp, tmpfs: { mode: 1023 } }
+      - { type: tmpfs, target: /app/var/cache, tmpfs: { mode: 1023 } }
+      - { type: tmpfs, target: /app/var/log, tmpfs: { mode: 1023 } }
+      - { type: tmpfs, target: /app/var/sessions, tmpfs: { mode: 1023 } }
+    mem_limit: 512m
+    cpus: 0.5
+
+  # ---------------------------------------------------------------------------
+  # Sessions partagées entre les réplicas.
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Démarré directement sous le compte « redis ». L'image démarre normalement
+    # en root puis abandonne ses privilèges via setpriv, ce qui exigerait de lui
+    # rendre SETUID/SETGID. En le lançant d'emblée non privilégié, il tourne
+    # avec zéro capacité — strictement mieux que d'en réaccorder deux.
+    user: redis
+    # Aucun port publié : joignable uniquement depuis le réseau backend.
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD est obligatoire}
+      - --appendonly
+      - 'no'
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - backend
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    mem_limit: 256m
+    cpus: 0.25
 
   database:
     image: mysql:8.4
@@ -71,9 +212,12 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
-    # Aucun port publié : la base n'est joignable que depuis le réseau interne
-    # de la composition. C'est la mesure la plus simple et la plus efficace
-    # contre l'exposition accidentelle d'une base sur Internet.
+      # Pas de résolution DNS inverse à chaque connexion : gain de latence, et
+      # une dépendance réseau de moins.
+      - --skip-name-resolve
+    # Aucun port publié : la base n'est joignable que depuis le réseau backend.
+    # C'est la mesure la plus simple et la plus efficace contre l'exposition
+    # accidentelle d'une base sur Internet.
     volumes:
       - database_data:/var/lib/mysql:rw
       - ./backups:/backups
@@ -83,6 +227,29 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+    networks:
+      - backend
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    # Le point d'entrée de MySQL démarre en root puis abandonne ses privilèges
+    # au compte « mysql » : sans SETGID/SETUID il s'arrête sur « setgid:
+    # Operation not permitted ». CHOWN et DAC_OVERRIDE servent à l'initialisation
+    # du répertoire de données au premier démarrage. Ce sont les quatre seules
+    # capacités conservées sur les trente-huit possibles.
+    cap_add: ['CHOWN', 'SETGID', 'SETUID', 'DAC_OVERRIDE']
+    mem_limit: 2g
+    cpus: 1.0
+
+# -----------------------------------------------------------------------------
+# Cloisonnement réseau
+# -----------------------------------------------------------------------------
+# La base et Redis ne sont joignables que depuis « backend ». Le proxy, exposé
+# sur Internet, n'a accès qu'à « frontend » : même compromis, il ne peut pas
+# ouvrir de connexion vers la base.
+networks:
+  frontend:
+  backend:
+    internal: true
 
 volumes:
   database_data:

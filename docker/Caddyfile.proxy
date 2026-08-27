@@ -1,0 +1,61 @@
+# Reverse proxy public de production.
+#
+# Depuis la mise en place du scaling horizontal, c'est ce conteneur — et lui
+# seul — qui publie 80/443 et porte les certificats TLS. Les conteneurs
+# applicatifs écoutent en interne sur 8080 et n'exposent plus rien sur l'hôte :
+# c'est ce qui rend « --scale app=3 » possible, trois conteneurs ne pouvant pas
+# se partager le port 80.
+#
+# Les en-têtes de sécurité (V05) sont désormais posés ici, au seul point par
+# lequel tout le trafic public transite.
+
+{
+	{$CADDY_GLOBAL_OPTIONS}
+	email {$TLS_EMAIL:admin@cesizen.fr}
+}
+
+{$SERVER_NAME:localhost} {
+	encode zstd gzip
+
+	# ---------------------------------------------------------------------
+	# V05 — en-têtes de sécurité
+	# ---------------------------------------------------------------------
+	header {
+		# Force HTTPS pendant un an, sous-domaines compris.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# Politique de sécurité du contenu : tout provient du même domaine.
+		# 'unsafe-inline' sur les styles reste nécessaire tant que les gabarits
+		# Twig contiennent des attributs style="" (dette suivie en ticket).
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'"
+		# Empêche le navigateur de deviner un type MIME (protège des polyglottes).
+		X-Content-Type-Options "nosniff"
+		# Interdit l'inclusion du site dans une iframe (clickjacking).
+		X-Frame-Options "DENY"
+		# Ne divulgue pas l'URL complète aux sites tiers.
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Coupe les API navigateur non utilisées par l'application.
+		Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=()"
+		# Ne pas annoncer le serveur ni sa version.
+		-Server
+		-X-Powered-By
+	}
+
+	# ---------------------------------------------------------------------
+	# Répartition de charge sur les réplicas
+	# ---------------------------------------------------------------------
+	# « dynamic a » est indispensable : sans lui, Caddy résout le nom « app »
+	# une seule fois au démarrage et enverrait tout le trafic vers le premier
+	# conteneur. Avec la résolution DNS répétée toutes les 5 s, un réplica
+	# ajouté ou retiré est pris en compte sans redémarrer le proxy.
+	reverse_proxy {
+		dynamic a {
+			name app
+			port 8080
+			refresh 5s
+		}
+
+		# Un réplica qui ne répond plus à /health est retiré de la rotation.
+		health_uri /health
+		health_interval 10s
+	}
+}
