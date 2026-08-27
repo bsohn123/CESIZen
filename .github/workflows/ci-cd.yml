@@ -236,7 +236,13 @@ jobs:
             echo "MAILER_DSN=null://null"
             echo "MAILER_FROM=zap@example.test"
           } > .env.zap
-          docker compose -f compose.prod.yaml --env-file .env.zap up -d --scale app=2
+          # GITHUB_REPOSITORY est une variable intégrée de GitHub Actions, et
+          # Compose donne priorité à l'environnement du shell sur --env-file :
+          # sans cette surcharge explicite, la casse d'origine (CESIZen)
+          # l'emporte et Docker refuse la référence, un nom d'image devant être
+          # entièrement en minuscules.
+          GITHUB_REPOSITORY="$IMAGE_REPO" \
+            docker compose -f compose.prod.yaml --env-file .env.zap up -d --scale app=2
 
       - name: Attente de la sonde de santé
         run: |
@@ -248,7 +254,7 @@ jobs:
             sleep 2
           done
           echo "::error::L application n a pas démarré en 120 s."
-          docker compose -f compose.prod.yaml --env-file .env.zap logs --tail=50
+          GITHUB_REPOSITORY="$IMAGE_REPO" docker compose -f compose.prod.yaml --env-file .env.zap logs --tail=50
           exit 1
 
       # fail_action reste à false pour cette première mise en place : un scan
@@ -265,7 +271,7 @@ jobs:
 
       - name: Arrêt de la composition
         if: always()
-        run: docker compose -f compose.prod.yaml --env-file .env.zap down -v --remove-orphans
+        run: GITHUB_REPOSITORY="$IMAGE_REPO" docker compose -f compose.prod.yaml --env-file .env.zap down -v --remove-orphans
 
   # ---------------------------------------------------------------------------
   # 6. Construction — image applicative unique, réutilisée en recette et en prod
