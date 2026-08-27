@@ -11,6 +11,12 @@
 
 {
 	{$CADDY_GLOBAL_OPTIONS}
+	# API d'administration désactivée. Elle n'est utilisée ni par le déploiement
+	# ni par l'exploitation, et c'est elle qui expose le code vulnérable de
+	# kin-openapi embarqué dans le binaire (GHSA-r277-6w6q-xmqw et deux CVE
+	# associées). La couper supprime la surface d'attaque plutôt que de se
+	# contenter d'ignorer l'alerte.
+	admin off
 	email {$TLS_EMAIL:admin@cesizen.fr}
 }
 

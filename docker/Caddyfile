@@ -8,6 +8,12 @@
 {
 	{$CADDY_GLOBAL_OPTIONS}
 	frankenphp
+	# API d'administration desactivee. Elle n'est utilisee ni par le
+	# deploiement ni par l'exploitation, et c'est elle qui expose le code
+	# vulnerable de kin-openapi embarque dans le binaire FrankenPHP
+	# (GHSA-r277-6w6q-xmqw et deux CVE associees). La couper supprime la
+	# surface d'attaque plutot que de se contenter d'ignorer l'alerte.
+	admin off
 	# Aucun certificat n'est demandé ici : ce serveur n'est jamais joint
 	# directement depuis Internet.
 	auto_https off
