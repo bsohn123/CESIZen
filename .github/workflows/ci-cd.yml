@@ -76,7 +76,7 @@ jobs:
       # indépendamment des commits.
       - name: Secrets dans le code (bloquant)
         run: |
-          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \n            detect --source=/repo --no-git --redact --verbose
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest detect --source=/repo --config=/repo/.gitleaks.toml --no-git --redact --verbose
 
       # Passe 2 — l'historique complet. NON BLOQUANTE, délibérément.
       #
@@ -92,7 +92,7 @@ jobs:
       - name: Secrets dans l'historique (rappel, non bloquant)
         continue-on-error: true
         run: |
-          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \n            detect --source=/repo --redact --verbose
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest detect --source=/repo --config=/repo/.gitleaks.toml --redact --verbose
 
   # ---------------------------------------------------------------------------
   # 3. Sécurité — vulnérabilités connues des dépendances (V08)

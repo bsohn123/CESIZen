@@ -16,13 +16,14 @@ INDEXES="$(git diff --cached --name-only --diff-filter=ACMR)"
 rouge() { printf '\033[0;31m%s\033[0m\n' "$1" >&2; }
 
 # --- 1. Secrets dans les fichiers indexés ------------------------------------
-# Trois façons d'exécuter gitleaks, par ordre de préférence : binaire local,
-# puis image Docker. Si aucune n'est disponible, on passe sans rien dire.
+# Si gitleaks n'est pas installé sur le poste, on passe sans rien dire : un outil
+# manquant ne doit pas empêcher de travailler. L'étape 2 de la chaîne, elle,
+# l'exige — rien ne peut être fusionné sans être passé au crible.
 if command -v gitleaks >/dev/null 2>&1; then
-	if ! gitleaks protect --staged --redact --no-banner >/dev/null 2>&1; then
+	if ! gitleaks protect --staged --redact --no-banner --config .gitleaks.toml >/dev/null 2>&1; then
 		rouge 'COMMIT REFUSÉ : gitleaks a détecté un secret dans les fichiers indexés.'
 		rouge ''
-		gitleaks protect --staged --redact --no-banner 2>&1 | sed 's/^/  /' >&2 || true
+		gitleaks protect --staged --redact --no-banner --config .gitleaks.toml 2>&1 | sed 's/^/  /' >&2 || true
 		rouge ''
 		rouge 'Retirez le secret puis recommencez. Si la détection est erronée,'
 		rouge 'documentez-la dans .gitleaksignore plutôt que de contourner le hook.'
