@@ -377,7 +377,7 @@ jobs:
       # de savoir quoi corriger.
       - name: Publication du rapport dans l onglet Security
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy.sarif
 
